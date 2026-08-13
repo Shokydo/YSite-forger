@@ -158,9 +158,9 @@ function renderLook(){
 
   /* символы */
   if(Ly.type==='symbols'){
-    h+=h4('Элементы, размер, вес')+'<div class="hint">Элемент — целиком (строка/emoji). Размер — свой у каждого. % = частота</div>';
+    h+=h4('Элементы, размер, вес')+'<div class="hint">Элемент — целиком (строка/emoji). Размер и вращение — свои у каждого. % = частота</div>';
     (Ly.elems||[]).forEach(function(e,ei){
-      h+='<div class="row"><div class="rr"><input class="txt" data-elt="'+ei+'" value="'+esc(e.t)+'" style="flex:1"><input class="num" data-els="'+ei+'" min="8" max="120" value="'+(e.s!=null?e.s:(Ly.fs||26))+'"><button class="btn sm" data-elr="'+ei+'">'+I.rm+'</button></div><div class="rr"><input type="range" data-elw="'+ei+'" min="0" max="100" value="'+e.w+'"><span class="wpct" style="width:44px;text-align:right">'+e.w+'%</span></div></div>';
+      h+='<div class="row"><div class="rr"><input class="txt" data-elt="'+ei+'" value="'+esc(e.t)+'" style="flex:1"><input class="num" data-els="'+ei+'" min="8" max="120" value="'+(e.s!=null?e.s:(Ly.fs||26))+'"><button class="btn sm" data-elr="'+ei+'">'+I.rm+'</button></div><div class="rr"><input type="range" data-elw="'+ei+'" min="0" max="100" value="'+e.w+'"><span class="wpct" style="width:44px;text-align:right">'+e.w+'%</span></div><div class="rr"><span class="hint" style="width:74px">Вращение</span><select data-elrm="'+ei+'"><option value="none"'+(e.r==='none'||!e.r?' selected':'')+'>Нет</option><option value="spin"'+(e.r==='spin'?' selected':'')+'>По кругу</option><option value="swing"'+(e.r==='swing'?' selected':'')+'>Туда-сюда</option></select><input class="num" data-elrs="'+ei+'" min="0.5" max="20" step="0.1" value="'+(e.rs!=null?e.rs:6)+'" title="сек/оборот"></div></div>';
     });
     h+='<button class="btn sm" id="addEl">+ элемент</button>'
       +ck('lk','random','Случайное положение',Ly.random);
@@ -232,6 +232,12 @@ function renderLook(){
   });
   lookEl.querySelectorAll('[data-els]').forEach(function(inp){
     inp.addEventListener('input',function(){ Ly.elems[+inp.dataset.els].s=parseFloat(inp.value)||26; reqRender(); });
+  });
+  lookEl.querySelectorAll('[data-elrm]').forEach(function(inp){
+    inp.addEventListener('change',function(){ Ly.elems[+inp.dataset.elrm].r=inp.value; reqRender(); });
+  });
+  lookEl.querySelectorAll('[data-elrs]').forEach(function(inp){
+    inp.addEventListener('input',function(){ Ly.elems[+inp.dataset.elrs].rs=parseFloat(inp.value)||6; reqRender(); });
   });
   lookEl.querySelectorAll('[data-elw]').forEach(function(inp){
     inp.addEventListener('input',function(){
@@ -397,7 +403,7 @@ function svgStandalone(){
   return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid slice">'+buildSVG(state,'e')+'</svg>';
 }
 function htmlStandalone(){
-  return '<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Мой фон</title><style>*{margin:0;box-sizing:border-box}html,body{height:100%}.bg{position:fixed;inset:0;z-index:-1;overflow:hidden}.bg svg{width:100%;height:100%;display:block}</style></head><body><div class="bg">'+svgStandalone()+'</div>'+cursorScript()+'</body></html>';
+  return '<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Мой фон</title><style>*{margin:0;box-sizing:border-box}html,body{height:100%}.bg{position:fixed;inset:0;z-index:-1;overflow:hidden}.bg svg{width:100%;height:100%;display:block}</style></head><body><div class="bg">'+svgStandalone()+'</div>'+(typeof BackgroundsLib!=='undefined'?BackgroundsLib.cursorScript():'')+'</body></html>';
 }
 function toast(t){
   var el=$('toast'); el.textContent=t; el.classList.add('show');
@@ -417,12 +423,11 @@ $('bgcopyCSS').onclick=function(){
 };
 $('bgcopyHTML').onclick=function(){ copy(htmlStandalone(),'HTML скопирован ✓'); };
 
-/* ---------- 14b. Предпросмотр сайта на весь экран ---------- */
+/* ---------- 14b. Предпросмотр фона на весь экран ---------- */
 $('bgprevBtn').onclick=function(){
-  var st=(typeof Store!=='undefined')?Store.getState():null;
-  if(!st){ toast('Сначала создайте проект в конструкторе'); return; }
+  if(!state){ toast('Сначала создайте фон'); return; }
   var fr=$('bgpreviewFrame');
-  try{ fr.srcdoc=Renderer.generateFullHTML(st,{minify:false}); }
+  try{ fr.srcdoc=htmlStandalone(); }
   catch(e){ toast('Не удалось собрать превью'); return; }
   $('bgpreview').classList.remove('hidden');
 };

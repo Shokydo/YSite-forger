@@ -137,7 +137,7 @@ function newLayer(t){
     spin:'none',spinDur:6,
     dist:0,distFreq:10,distAnim:false,distDuration:2,distInterval:0,distAmp:40,
     drift:false,driftColors:['#ffffff'],driftNeonColors:['#ffffff'],driftDur:6,
-    elems:[{t:'0',w:50,s:26},{t:'1',w:50,s:26}],fs:26,random:true,count:90,colorMode:true,multi:true,seed:7,chaos:100,
+    elems:[{t:'0',w:50,s:26,r:'none',rs:6},{t:'1',w:50,s:26,r:'none',rs:6}],fs:26,random:true,count:90,colorMode:true,multi:true,seed:7,chaos:100,
     shape:'circle',outline:false,rotRand:0,sizeVar:40,
     fx:'drop',radius:150,strength:50,soft:30,exclude:[],gAmp:10,gSpeed:1,
     obj:'none',objSize:26,objSpin:true,
@@ -186,21 +186,27 @@ function pickElemIdx(Ly,rnd){
   for(var k=0;k<E.length;k++){r-=Math.max(0,E[k].w);if(r<0)return k}
   return E.length-1;
 }
+function elemSpinEl(e){
+  if(!e||!e.r||e.r==='none')return '';
+  var d=e.rs!=null?e.rs:6;
+  if(e.r==='swing')return '<animateTransform attributeName="transform" type="rotate" values="0;180;0" dur="'+(d*2).toFixed(2)+'s" repeatCount="indefinite"/>';
+  return '<animateTransform attributeName="transform" type="rotate" values="0;360" dur="'+(d||6)+'s" repeatCount="indefinite"/>';
+}
 function genSymbols(Ly,color,isGlow,g,gT,drift){
-  var rnd=mulberry32(Ly.seed),t='',E=Ly.elems&&Ly.elems.length?Ly.elems:[{t:'?',w:1}],spin=elemSpin(Ly);
-  function put(x,y,ch,sz){t+='<g transform="translate('+x.toFixed(1)+' '+y.toFixed(1)+')"><g>'+(spin||'')+'<text x="0" y="0" font-size="'+sz+'">'+esc(ch)+'</text></g></g>'}
+  var rnd=mulberry32(Ly.seed),t='',E=Ly.elems&&Ly.elems.length?Ly.elems:[{t:'?',w:1}];
+  function put(x,y,ch,sz,sp){t+='<g transform="translate('+x.toFixed(1)+' '+y.toFixed(1)+')"><g>'+(sp||'')+'<text x="0" y="0" font-size="'+sz+'">'+esc(ch)+'</text></g></g>'}
   function esz(k){return Math.max(4,(E[k].s!=null?E[k].s:(Ly.fs||26))).toFixed(1)}
   if(Ly.random){
     var d=gridDims(Ly.count);
     for(var k=0;k<Ly.count;k++){
       var p=chaosPos(Ly,rnd,k,d[0],d[1]),gr=gT>1?(rnd()*gT)|0:0,k2=pickElemIdx(Ly,rnd);
-      if(gr===g)put(p[0],p[1],E[k2].t,esz(k2));
+      if(gr===g)put(p[0],p[1],E[k2].t,esz(k2),elemSpinEl(E[k2]));
     }
   }else{
     for(var y=Ly.size2/2;y<H+Ly.size2;y+=Ly.size2)
       for(var x=Ly.size/2;x<W+Ly.size/2;x+=Ly.size){
         var gr2=gT>1?(rnd()*gT)|0:0,k3=pickElemIdx(Ly,rnd);
-        if(gr2===g)put(x,y,E[k3].t,esz(k3));
+        if(gr2===g)put(x,y,E[k3].t,esz(k3),elemSpinEl(E[k3]));
       }
   }
   var uf=Ly.colorMode||isGlow;
