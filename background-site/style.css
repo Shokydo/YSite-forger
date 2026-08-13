@@ -1,0 +1,114 @@
+/* ========== БАЗА ========== */
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:#0a0a0a;color:#f2f2f2;font-family:Inter,system-ui,sans-serif;overflow-x:hidden}
+::-webkit-scrollbar{width:9px}
+::-webkit-scrollbar-thumb{background:#3d3d3d;border-radius:5px}
+.hidden{display:none!important}
+button{font-family:inherit}
+svg.ic{width:14px;height:14px;display:inline-block;vertical-align:-2px}
+h4{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#fff;margin-top:6px;display:flex;align-items:center;gap:6px}
+h4:after{content:'';flex:1;height:1px;background:#333}
+
+/* ========== КНОПКИ / ПОЛЯ ========== */
+.btn{background:#161616;border:1px solid #666;color:#eee;border-radius:10px;padding:8px 16px;cursor:pointer;font-size:13px;font-weight:600;transition:.15s}
+.btn:hover{background:#fff;color:#000}
+.btn.sm{padding:5px 10px;font-size:12px}
+.btn.big{padding:14px 28px;font-size:15px;border-color:#fff;box-shadow:0 0 20px #ffffff33}
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1;height:5px;border-radius:3px;background:linear-gradient(90deg,#555,#ddd);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:#fff;border:3px solid #000;box-shadow:0 0 0 1px #fff;cursor:pointer}
+input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:#fff;border:3px solid #000;box-shadow:0 0 0 1px #fff}
+select{background:#1e1e1e;border:1px solid #666;color:#fff;border-radius:8px;padding:6px 8px;font-size:12px;outline:none}
+.txt{background:#1e1e1e;border:1px solid #666;color:#fff;border-radius:6px;padding:5px 8px;font-size:12px;outline:none;width:120px}
+.num,.hex{width:66px;background:#1e1e1e;border:1px solid #666;color:#fff;border-radius:6px;padding:5px 6px;font-size:12px;outline:none}
+.hex{width:80px;font-family:ui-monospace,monospace}
+.num:focus,.hex:focus,.txt:focus{border-color:#fff}
+
+/* ========== ТУМБЛЕРЫ / ЦВЕТ ========== */
+.sw{position:relative;width:42px;height:22px;flex:none}
+.sw input{display:none}
+.sw i{position:absolute;inset:0;background:#2a2a2a;border:1px solid #555;border-radius:11px;transition:.2s}
+.sw i:after{content:'';position:absolute;left:3px;top:3px;width:14px;height:14px;border-radius:50%;background:#888;transition:.2s}
+.sw input:checked+i{background:#e8e8e8;border-color:#fff}
+.sw input:checked+i:after{left:23px;background:#000}
+.cright{display:flex;gap:6px;align-items:center}
+.csw{width:32px;height:26px;border-radius:6px;border:1px solid #777;cursor:grab;flex:none;box-shadow:inset 0 0 0 2px #00000066}
+.csw:active{cursor:grabbing}
+
+/* ========== ГЛАВНАЯ ========== */
+nav{display:flex;align-items:center;gap:20px;padding:18px 40px}
+nav .logo{font-weight:800;font-size:18px;letter-spacing:.08em;color:#fff;text-shadow:0 0 16px #ffffff88}
+nav span{margin-left:auto;color:#999;font-size:13px}
+.hero{text-align:center;padding:36px 20px 26px}
+.hero h1{font-size:clamp(30px,5vw,56px);font-weight:800;color:#fff;text-shadow:0 0 30px #ffffffaa}
+.hero p{color:#aaa;margin-top:10px;font-size:15px}
+.hero .btn{margin-top:22px}
+#cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;padding:20px 40px 60px;max-width:1500px;margin:0 auto}
+.card{border-radius:16px;overflow:hidden;border:1px solid #3a3a3a;background:#141414;cursor:pointer;transition:.2s}
+.card:hover{transform:translateY(-5px);border-color:#fff;box-shadow:0 12px 40px #000c,0 0 20px #ffffff22}
+.card .prev{aspect-ratio:16/9;position:relative;overflow:hidden;background:#000}
+.card .prev svg{position:absolute;inset:0;width:100%;height:100%}
+.card .bar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;font-size:14px}
+.card .bar b{color:#fff}
+.card .bar span{color:#bbb;font-size:12px;opacity:0;transition:.2s}
+.card:hover .bar span{opacity:1}
+
+/* ========== РЕДАКТОР ========== */
+#edit{height:100vh;display:flex;flex-direction:column}
+#edit header{display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid #2e2e2e;flex-wrap:wrap}
+#edit header h1{font-size:15px;flex:1;color:#fff;font-weight:700}
+#edit main{flex:1;display:flex;gap:14px;padding:14px;min-height:0}
+#layersBox{width:230px;flex:none;display:flex;flex-direction:column;gap:10px;overflow-y:auto}
+#stage{flex:1;border-radius:16px;overflow:hidden;border:1px solid #3a3a3a;position:relative;min-height:0;background:#000;cursor:crosshair}
+#stage svg{position:absolute;inset:0;width:100%;height:100%}
+#props{width:340px;flex:none;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+section{background:#161616;border:1px solid #3d3d3d;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+section h3{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#fff;display:flex;align-items:center;gap:8px}
+section h3:before{content:'';width:9px;height:9px;background:#fff;box-shadow:0 0 10px #ffffff88}
+.row{display:flex;flex-direction:column;gap:6px;font-size:13px;color:#e6e6e6}
+.rr{display:flex;gap:8px;align-items:center}
+.crow{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#e6e6e6;gap:8px}
+.check{flex-direction:row;align-items:center;justify-content:space-between}
+.li{display:flex;align-items:center;justify-content:space-between;background:#1e1e1e;border:1px solid #444;border-radius:10px;padding:9px 10px;font-size:13px;color:#eee;cursor:pointer;transition:.15s}
+.li:hover{border-color:#888}
+.li.sel{border-color:#fff;background:#242424;box-shadow:0 0 12px #ffffff33}
+.li.bgi{border-style:dashed;color:#bbb}
+.li .acts{display:flex;gap:4px}
+.li .acts button{background:none;border:none;color:#aaa;cursor:pointer;padding:2px 5px;border-radius:4px}
+.li .acts button:hover{color:#fff;background:#333}
+.addrow{display:flex;gap:8px}
+.addrow select{flex:1}
+.cubes{display:flex;gap:10px}
+.cube{width:32px;height:32px;border-radius:8px;border:2px solid #555;cursor:pointer;transition:.15s}
+.cube:hover{transform:scale(1.1)}
+.cube.sel{border-color:#fff;box-shadow:0 0 0 2px #000,0 0 14px #ffffff77}
+.cube.off{opacity:.3;border-style:dashed}
+.pills{display:flex;gap:6px;flex-wrap:wrap}
+.pills button{background:#1e1e1e;border:1px solid #555;color:#ccc;border-radius:8px;padding:6px 11px;font-size:12px;cursor:pointer;font-weight:600}
+.pills button:hover{border-color:#aaa}
+.pills button.on{background:#fff;color:#000;border-color:#fff}
+.curve{position:relative;height:80px;background:#1e1e1e;border:1px solid #555;border-radius:8px;overflow:hidden;touch-action:none}
+.curve svg{position:absolute;inset:0;width:100%;height:100%}
+.pt{position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;transform:translate(-50%,-50%);cursor:grab;box-shadow:0 0 8px #ffffffaa;z-index:2}
+.pt.locked{background:#666;box-shadow:none}
+.hint{color:#888;font-size:11px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chip{position:relative}
+.chip button{position:absolute;top:-7px;right:-7px;width:16px;height:16px;border-radius:50%;background:#333;border:1px solid #777;color:#ddd;cursor:pointer;padding:0}
+.chip button svg.ic{width:8px;height:8px}
+.chip button:hover{background:#fff;color:#000}
+
+/* ========== ПИКЕР ЦВЕТА ========== */
+.pop{position:fixed;z-index:99;width:230px;background:#161616;border:1px solid #666;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 20px 60px #000}
+.sv{height:130px;border-radius:8px;position:relative;cursor:crosshair;border:1px solid #444}
+.svdot,.huedot{position:absolute;width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 4px #000;transform:translate(-50%,-50%);pointer-events:none}
+.hue{height:14px;border-radius:7px;position:relative;cursor:crosshair;background:linear-gradient(90deg,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);border:1px solid #444}
+
+/* ========== ТОСТ / АДАПТИВ ========== */
+#toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,20px);background:#fff;color:#000;padding:10px 24px;border-radius:12px;opacity:0;transition:.3s;pointer-events:none;font-size:13px;font-weight:700;z-index:99;max-width:90vw}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:1000px){
+  #edit main{flex-direction:column;overflow-y:auto}
+  #layersBox,#props{width:100%}
+  #stage{min-height:320px}
+}

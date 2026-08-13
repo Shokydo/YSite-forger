@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YSiteForger - Конструктор сайтов</title>
+  <link rel="stylesheet" href="css/editor.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- ========== TOAST (общий для всего приложения) ========== -->
+  <div id="toast" class="toast"></div>
+
+  <!-- ========== VIEW: HOME ========== -->
+  <div id="view-home" class="view">
+    <header class="home-header">
+      <div class="home-logo">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <rect width="32" height="32" rx="8" fill="#ffffff"/>
+          <path d="M10 16L14 20L22 12" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="home-logo-text">
+          <span class="home-logo-title">YSiteForger</span>
+          <span class="home-logo-subtitle">Конструктор сайтов</span>
+        </div>
+      </div>
+      <div class="home-header-actions">
+        <button class="btn btn-outline" id="openSavedProjectsBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+          Проекты
+        </button>
+      </div>
+    </header>
+
+    <main class="home-main">
+      <div class="home-hero">
+        <h1>Создай свой сайт</h1>
+        <p>Визуальный конструктор с экспортом в HTML или ZIP. Работает офлайн.</p>
+      </div>
+
+      <div class="home-cards">
+        <!-- Карточка: Создать фон -->
+        <div class="home-card" id="card-bg">
+          <div class="home-card-icon bg-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M3 9h18M9 21V9"/>
+            </svg>
+          </div>
+          <div class="home-card-content">
+            <h3>Создать фон</h3>
+            <p>Слои, фигуры, символы, курсор-FX. Экспорт в SVG/HTML/CSS.</p>
+          </div>
+          <div class="home-card-actions">
+            <button class="btn btn-primary" id="createBgBtn">Открыть BG·LAB</button>
+          </div>
+        </div>
+
+        <!-- Карточка: Одностраничный HTML -->
+        <div class="home-card" id="card-html">
+          <div class="home-card-icon html-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+          </div>
+          <div class="home-card-content">
+            <h3>Одностраничный HTML</h3>
+            <p>Сайт в одном файле. Виртуальные страницы, формы, анимации. Работает офлайн.</p>
+          </div>
+          <div class="home-card-actions">
+            <button class="btn btn-primary" id="createHtmlBtn">Создать</button>
+          </div>
+        </div>
+
+        <!-- Карточка: Полный HTML проект -->
+        <div class="home-card" id="card-zip">
+          <div class="home-card-icon zip-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+              <line x1="12" y1="22.08" x2="12" y2="12"/>
+            </svg>
+          </div>
+          <div class="home-card-content">
+            <h3>Полный HTML проект</h3>
+            <p>Структурированный проект для хостинга. CSS, JS, изображения в отдельных папках.</p>
+          </div>
+          <div class="home-card-actions">
+            <button class="btn btn-primary" id="createZipBtn">Создать</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Раздел: Сохранённые фоны -->
+      <div class="home-section" id="savedBgsSection">
+        <div class="home-section-header">
+          <h2>Сохранённые фоны</h2>
+          <button class="btn btn-icon" id="refreshBgsBtn" title="Обновить">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M23 4v6h-6M1 20v-6h6"/>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+            </svg>
+          </button>
+        </div>
+        <div class="home-bgs-grid" id="savedBgsGrid"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ========== VIEW: EDITOR ========== -->
+  <div id="view-editor" class="view hidden">
+    <header class="app-header">
+      <div class="header-left">
+        <button class="btn-header" id="backToHomeBtn" title="На главную">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+        </button>
+        <div class="logo">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <rect width="28" height="28" rx="6" fill="#ffffff"/>
+            <path d="M8 14L12 18L20 10" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="logo-text">YSiteForger</span>
+        </div>
+        <div class="project-info">
+          <input type="text" id="projectName" value="Мой проект" class="project-name-input" />
+          <span class="mode-badge" id="modeBadge">Одностраничный HTML</span>
+        </div>
+      </div>
+      <div class="header-center">
+        <button class="btn-header" id="undoBtn" title="Отменить (Ctrl+Z)" disabled>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="1 4 1 10 7 10"/>
+            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+          </svg>
+        </button>
+        <button class="btn-header" id="redoBtn" title="Повторить (Ctrl+Shift+Z)" disabled>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"/>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+          </svg>
+        </button>
+        <div class="divider-vertical"></div>
+        <div class="view-mode">
+          <button class="btn-view active" data-view="desktop" title="Desktop">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+          </button>
+          <button class="btn-view" data-view="tablet" title="Tablet">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="4" y="2" width="16" height="20" rx="2"/>
+              <line x1="12" y1="18" x2="12.01" y2="18"/>
+            </svg>
+          </button>
+          <button class="btn-view" data-view="mobile" title="Mobile">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="5" y="2" width="14" height="20" rx="2"/>
+              <line x1="12" y1="18" x2="12.01" y2="18"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="header-right">
+        <button class="btn btn-icon" id="resetProjectBtn" title="Сбросить проект">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12l7-7 7 7-7 7-7-7z"/>
+          </svg>
+        </button>
+        <button class="btn btn-outline" id="exportHtmlBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Экспорт HTML
+        </button>
+        <button class="btn btn-primary" id="exportZipBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+            <line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+          Экспорт ZIP
+        </button>
+      </div>
+    </header>
+
+    <div class="editor-container">
+      <!-- Левая панель -->
+      <aside class="panel-left">
+        <div class="panel-tabs">
+          <button class="panel-tab active" data-tab="blocks">Блоки</button>
+          <button class="panel-tab" data-tab="pages">Страницы</button>
+        </div>
+        
+        <!-- Вкладка блоков -->
+        <div class="panel-tab-content active" id="tabBlocks">
+          <div class="blocks-search">
+            <input type="text" id="blockSearch" placeholder="Поиск блоков..." />
+          </div>
+          
+          <div class="blocks-category">
+            <div class="category-title">Структурные</div>
+            <div class="blocks-grid">
+              <div class="block-item" data-block="section" draggable="true">
+                <div class="block-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+                </div>
+                <span>Секция</span>
+              </div>
+              <div class="block-item" data-block="container" draggable="true">
+                <div class="block-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
+                </div>
+                <span>Контейнер</span>
+              </div>
+              <div class="block-item" data-block="columns" draggable="true">
+                <div class="block-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="3" x2="12" y2="21"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+                </div>
+                <span>Колонки</span>
+              </div>
+              <div class="block-item" data-block="divider" draggable="true">
+                <div class="block-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/></svg>
+                </div>
+                <span>Разделитель</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="blocks-category">
+            <div class="category-title">Текстовые</div>
+            <div class="blocks-grid">
+              <div class="block-item" data-block="heading" draggable="true">
+                <div class="block-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 4 6 20"/><polyline points="18 4 18 20"/><line x1="6" y1="12" x2="18" y2="12"/></svg>
+                </div>
+                <span>Заголовок</span>
+              </div>
+              <div class="block-item" data-block="paragraph" draggable="true">
+                <div class="block-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="10" x2="15" y2="10"/><line x1="3" y1="14" x2="18" y2="14"/><line x1="3" y1="18" x2="12" y2="18"/></svg>
+                </div>
+                <span>Параграф</span>
+              </div>
+              <div class="block-item" data-block="list" draggable="true">
+                <div class="block-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                </div>
+                <span>Список</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="blocks-category">
+            <div class="category-title">Медиа</div>
+            <div class="blocks-grid">
+              <div class="block-item" data-block="image" draggable="true">
+                <div class="block-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                </div>
+                <span>Изображение</span>
+              </div>
+              <div class="block-item" data-block="gallery" draggable="true">
+                <div class="block-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                </div>
+                <span>Галерея</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="blocks-category">
+            <div class="category-title">Интерактивные</div>
+            <div class="blocks-grid">
+              <div class="block-item" data-block="button" draggable="true">
+                <div class="block-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="10" rx="3"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                </div>
+                <span>Кнопка</span>
+              </div>
+              <div class="block-item" data-block="form" draggable="true">
+                <div class="block-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                </div>
+                <span>Форма</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Вкладка страниц -->
+        <div class="panel-tab-content" id="tabPages">
+          <div class="pages-header">
+            <span class="pages-title">Страницы проекта</span>
+            <button class="btn-icon" id="addPageBtn" title="Добавить страницу">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+          </div>
+          <div class="pages-divider">Глобальные блоки</div>
+          <div class="page-item global-section" data-section="header">
+            <div class="page-item-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+            </div>
+            <span>Header (шапка)</span>
+            <div class="page-item-badge">Глобально</div>
+          </div>
+          <div class="page-item global-section" data-section="footer">
+            <div class="page-item-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 7 14 13 20 19"/><line x1="4" y1="5" x2="12" y2="5"/></svg>
+            </div>
+            <span>Footer (подвал)</span>
+            <div class="page-item-badge">Глобально</div>
+          </div>
+          <div class="pages-divider">Виртуальные страницы</div>
+          <div class="pages-list" id="pagesList"></div>
+        </div>
+      </aside>
+
+      <!-- Canvas (Центр) -->
+      <main class="canvas-area" id="canvasArea">
+        <div class="canvas-frame" id="canvasFrame">
+          <div class="canvas-toolbar">
+            <div class="canvas-indicator" id="pageIndicator">
+              <span>Страница: </span><strong id="currentPageName">Главная</strong>
+            </div>
+          </div>
+          <div class="canvas-viewport" id="canvasViewport">
+            <div class="canvas-page" id="canvasPage"></div>
+          </div>
+        </div>
+      </main>
+
+      <!-- Правая панель -->
+      <aside class="panel-right" id="panelRight">
+        <div class="panel-right-header">
+          <h3 id="panelTitle">Настройки</h3>
+        </div>
+        
+        <div class="panel-right-content" id="panelContent">
+          <!-- Глобальные настройки -->
+          <div class="settings-section" id="globalSettings">
+            <div class="settings-group">
+              <label class="settings-label">Режим проекта</label>
+              <div class="mode-selector">
+                <button class="mode-btn" data-mode="html" id="setHtmlMode">
+                  Одностраничный HTML
+                </button>
+                <button class="mode-btn" data-mode="zip" id="setZipMode">
+                  Полный проект (ZIP)
+                </button>
+              </div>
+            </div>
+            
+            <div class="settings-group">
+              <label class="settings-label">Основные цвета</label>
+              <div class="color-inputs">
+                <div class="color-input-group">
+                  <label>Primary</label>
+                  <input type="color" id="colorPrimary" value="#ffffff" />
+                </div>
+                <div class="color-input-group">
+                  <label>Фон</label>
+                  <input type="color" id="colorBackground" value="#0d0d0d" />
+                </div>
+                <div class="color-input-group">
+                  <label>Текст</label>
+                  <input type="color" id="colorText" value="#f5f5f5" />
+                </div>
+              </div>
+            </div>
+            
+            <div class="settings-group">
+              <label class="settings-label">Шрифт</label>
+              <select id="fontFamily">
+                <option value="Inter, sans-serif">Inter</option>
+                <option value="'Times New Roman', serif">Times New Roman</option>
+                <option value="Georgia, serif">Georgia</option>
+                <option value="'Courier New', monospace">Courier New</option>
+              </select>
+            </div>
+            
+            <!-- Фон страницы (BG·LAB) -->
+            <div class="settings-group" id="pageBgGroup">
+              <label class="settings-label">Фон страницы (BG·LAB)</label>
+              <div id="pageBgPicker"></div>
+            </div>
+            
+            <div class="settings-group">
+              <label class="settings-label">Настройки экспорта</label>
+              <div class="checkbox-group">
+                <label><input type="checkbox" id="optMinify" /> Минифицировать код</label>
+                <label><input type="checkbox" id="optWebp" checked /> Конвертировать в WebP</label>
+                <label><input type="checkbox" id="optBase64" checked /> Встроить медиа (Base64)</label>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Настройки блока -->
+          <div id="blockSettings" style="display:none;"></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- ========== VIEW: BG·LAB ========== -->
+  <div id="view-bglab" class="view hidden">
+    <div id="bgApp">
+      <section id="bghome">
+        <nav>
+          <button class="btn" id="bgback">← Назад</button>
+          <div class="logo">◆ BG·LAB</div>
+          <span class="nav-tagline">выбери шаблон → крути → забирай код</span>
+        </nav>
+        <div class="hero">
+          <h1>Фоны под ключ</h1>
+          <p>Слои · фигуры · символы · курсор-FX · экспорт SVG/CSS/HTML</p>
+          <div class="hero-actions">
+            <button class="btn big" id="bgcreateBtn">+ Создать фон</button>
+          </div>
+        </div>
+        <div id="bgcards"></div>
+        
+        <!-- Сохранённые фоны в BG·LAB -->
+        <div class="home-section" style="padding: 20px 40px 40px;">
+          <h2 style="font-size: 14px; text-transform: uppercase; letter-spacing: .1em; color: #fff; margin-bottom: 12px;">Сохранённые фоны</h2>
+          <div id="bgsaved" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;"></div>
+        </div>
+      </section>
+      
+      <section id="bgedit" class="hidden">
+        <header>
+          <button class="btn" id="bgback2">←</button>
+          <h1 id="bgedTitle">Редактор</h1>
+          <button class="btn" id="bgcopyHTML">HTML</button>
+          <button class="btn" id="bgcopySVG">SVG</button>
+          <button class="btn" id="bgcopyCSS">CSS</button>
+          <button class="btn" id="bgsaveBtn" style="background: #fff; border-color: #fff; color: #000;">💾 Сохранить фон</button>
+        </header>
+        <main>
+          <aside id="bglayersBox">
+            <section>
+              <h3>Слои</h3>
+              <div class="addrow">
+                <select id="bgaddType">
+                  <option value="grid">Сетка</option>
+                  <option value="dots">Точки</option>
+                  <option value="stripes">Полосы</option>
+                  <option value="waves">Волны</option>
+                  <option value="shapes">Фигуры</option>
+                  <option value="symbols">Символы</option>
+                  <option value="image">Изображение</option>
+                  <option value="cursor">Курсор-FX</option>
+                  <option value="scan">Сканлайны</option>
+                  <option value="vignette">Виньетка</option>
+                </select>
+                <button class="btn" id="bgaddBtn">+</button>
+              </div>
+              <div id="bglayers" style="display:flex;flex-direction:column;gap:6px"></div>
+            </section>
+          </aside>
+          <div id="bgstage"></div>
+          <aside id="bgprops">
+            <section>
+              <h3 id="bglookTitle">Слой · вид</h3>
+              <div id="bglookCtrls"></div>
+            </section>
+            <section id="bganimSec">
+              <h3>Слой · анимация</h3>
+              <div id="bganimCtrls"></div>
+            </section>
+          </aside>
+        </main>
+      </section>
+    </div>
+  </div>
+
+  <!-- ========== МОДАЛЬНЫЕ ОКНА ========== -->
+  
+  <!-- Модальное окно экспорта -->
+  <div class="modal-overlay" id="exportModal" style="display:none;">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Экспорт проекта</h2>
+        <button class="btn-close" onclick="closeExportModal()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="export-options">
+          <div class="export-option" id="exportOptionHtml">
+            <div class="export-option-icon">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5">
+                <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+              </svg>
+            </div>
+            <div class="export-option-info">
+              <h4>Single HTML (Offline)</h4>
+              <p>Один файл, работает без интернета. Всё встроено: стили, скрипты, медиа.</p>
+              <span class="export-badge">Рекомендуем для отправки</span>
+            </div>
+          </div>
+          <div class="export-option" id="exportOptionZip">
+            <div class="export-option-icon">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+              </svg>
+            </div>
+            <div class="export-option-info">
+              <h4>Project ZIP (For Hosting)</h4>
+              <p>Структурированный проект для хостинга. CSS, JS, изображения в отдельных папках.</p>
+              <span class="export-badge">Для публикации в интернете</span>
+            </div>
+          </div>
+        </div>
+        <div id="exportProgress" style="display:none;">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <p id="progressText">Генерация...</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeExportModal()">Отмена</button>
+        <button class="btn btn-primary" id="exportBtn">Экспортировать</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Подключаем JSZip и FileSaver для ZIP-экспорта -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  
+  <!-- BG·LAB Core -->
+  <script src="js/bglab-core.js"></script>
+  
+  <!-- SiteForge Modules -->
+  <script src="js/store.js"></script>
+  <script src="js/backgrounds.js"></script>
+  <script src="js/blocks.js"></script>
+  <script src="js/renderer.js"></script>
+  <script src="js/dragdrop.js"></script>
+  <script src="js/panel.js"></script>
+  <script src="js/pages.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/home.js"></script>
+  <script src="js/bglab-ui.js"></script>
+</body>
+</html>
