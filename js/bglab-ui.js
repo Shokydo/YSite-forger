@@ -134,6 +134,8 @@ function renderLook(){
   /* картинка */
   if(Ly.type==='image'){
     h+='<label class="btn sm" style="text-align:center;cursor:pointer">Загрузить изображение<input type="file" id="imgFile" hidden accept="image/*"></label>'
+      +ck('lk','tileOn','Плитка (повтор по экрану)',Ly.tileOn)
+      +(Ly.tileOn?rw('lk','tileSize','Размер плитки',80,400,1,Ly.tileSize):'')
       +rw('lk','scale','Масштаб',10,300,1,Ly.scale)+h4('Цветокор')
       +rw('lk','bright','Яркость',0,200,1,Ly.bright)+rw('lk','contrast','Контраст',0,200,1,Ly.contrast)
       +rw('lk','satur','Насыщенность',0,200,1,Ly.satur)+rw('lk','hueRot','Сдвиг оттенка',0,360,1,Ly.hueRot)
@@ -256,7 +258,7 @@ function renderLook(){
 
   bind(lookEl,'lk',Ly,function(k,v){
     if(k==='neon')renderAnim();
-    if(k==='random'||k==='multi'||k==='outline'||k==='obj')renderLook();
+    if(k==='random'||k==='multi'||k==='outline'||k==='obj'||k==='tileOn')renderLook();
     if(Ly.sync){
       if(k==='size'){ Ly.size2=v; syncPair('size2',v); }
       if(k==='size2'){ Ly.size=v; syncPair('size',v); }
@@ -317,6 +319,13 @@ function renderAnim(){
     +'<div class="pills">'+[['none','Нет'],['spin','360 по кругу'],['swing','Туда-сюда']].map(function(d){ return '<button data-rl="'+d[0]+'" class="'+(Ly.roll===d[0]?'on':'')+'">'+d[1]+'</button>'; }).join('')+'</div>'
     +rw('lk','rollDur','Секунд на оборот',.5,20,.1,Ly.rollDur);
 
+  if(['symbols','shapes','image'].indexOf(Ly.type)>=0){
+    h+=h4('Вращение элементов')
+      +'<div class="hint">Каждый символ/фигура/плитка крутится вокруг своей оси</div>'
+      +'<div class="pills">'+[['none','Нет'],['spin','По кругу'],['swing','Туда-сюда']].map(function(d){ return '<button data-sp="'+d[0]+'" class="'+(Ly.spin===d[0]?'on':'')+'">'+d[1]+'</button>'; }).join('')+'</div>'
+      +rw('lk','spinDur','Секунд на оборот',.5,20,.1,Ly.spinDur);
+  }
+
   if(Ly.neon)h+=h4('Пульсация неона')+ck('lk','pulse','Включена',Ly.pulse)
     +rw('lk','pulseDuration','Длительность, сек',.1,8,.1,Ly.pulseDuration)
     +rw('lk','pulseInterval','Пауза после, сек',0,8,.1,Ly.pulseInterval)
@@ -343,6 +352,7 @@ function renderAnim(){
 
   animEl.querySelectorAll('[data-mv]').forEach(function(b){ b.onclick=function(){ Ly.moveDir=b.dataset.mv; renderAnim(); reqRender(); }; });
   animEl.querySelectorAll('[data-rl]').forEach(function(b){ b.onclick=function(){ Ly.roll=b.dataset.rl; renderAnim(); reqRender(); }; });
+  animEl.querySelectorAll('[data-sp]').forEach(function(b){ b.onclick=function(){ Ly.spin=b.dataset.sp; renderAnim(); reqRender(); }; });
   var rd=function(){ drawCurves(); reqRender(); };
   var aN=animEl.querySelector('#addN'); if(aN)aN.onclick=function(){ addPoint(Ly.pulseCurve); rd(); };
   var aM=animEl.querySelector('#addM'); if(aM)aM.onclick=function(){ addPoint(Ly.mpulseCurve); rd(); };
@@ -402,11 +412,24 @@ function copy(t,m){
     document.execCommand('copy'); ta.remove(); d();
   }
 }
-$('bgcopySVG').onclick=function(){ copy(svgStandalone(),'SVG скопирован ✓'); };
 $('bgcopyCSS').onclick=function(){
   copy('.bg{position:fixed;inset:0;background:'+(state?state.bgBase:'#0a0a0a')+' url("data:image/svg+xml,'+encodeURIComponent(svgStandalone())+'") center/cover no-repeat}','CSS скопирован ✓');
 };
 $('bgcopyHTML').onclick=function(){ copy(htmlStandalone(),'HTML скопирован ✓'); };
+
+/* ---------- 14b. Предпросмотр сайта на весь экран ---------- */
+$('bgprevBtn').onclick=function(){
+  var st=(typeof Store!=='undefined')?Store.getState():null;
+  if(!st){ toast('Сначала создайте проект в конструкторе'); return; }
+  var fr=$('bgpreviewFrame');
+  try{ fr.srcdoc=Renderer.generateFullHTML(st,{minify:false}); }
+  catch(e){ toast('Не удалось собрать превью'); return; }
+  $('bgpreview').classList.remove('hidden');
+};
+$('bgprevExit').onclick=function(){
+  $('bgpreview').classList.add('hidden');
+  var fr=$('bgpreviewFrame'); fr.srcdoc='';
+};
 
 /* ---------- 15. Сохранённые фоны ---------- */
 function renderBGSaved(){

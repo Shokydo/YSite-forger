@@ -134,13 +134,14 @@ function newLayer(t){
     mpulse:false,mpulseDuration:1.2,mpulseInterval:0,mpulseCurve:defCurve(),
     breath:false,breathDur:3,breathAmp:15,breathInterval:0,
     roll:'none',rollDur:6,
+    spin:'none',spinDur:6,
     dist:0,distFreq:10,distAnim:false,distDuration:2,distInterval:0,distAmp:40,
     drift:false,driftColors:['#ffffff'],driftNeonColors:['#ffffff'],driftDur:6,
     elems:[{t:'0',w:50,s:26},{t:'1',w:50,s:26}],fs:26,random:true,count:90,colorMode:true,multi:true,seed:7,chaos:100,
     shape:'circle',outline:false,rotRand:0,sizeVar:40,
     fx:'drop',radius:150,strength:50,soft:30,exclude:[],gAmp:10,gSpeed:1,
     obj:'none',objSize:26,objSpin:true,
-    src:null,scale:100,bright:100,contrast:100,satur:100,hueRot:0,gray:0,sepia:0,invert:0
+    src:null,scale:100,tileOn:false,tileSize:200,bright:100,contrast:100,satur:100,hueRot:0,gray:0,sepia:0,invert:0
   };
   if(t==='dots'){b.size=36;b.size2=36;b.th=3}
   if(t==='stripes'){b.size=28;b.th=3;b.rot=45}
@@ -172,6 +173,11 @@ function chaosPos(Ly,rnd,k,c,r){
   return[gx+(rx-gx)*q,gy+(ry-gy)*q];
 }
 function gridDims(n){var c=Math.max(1,Math.ceil(Math.sqrt(n*W/H)));return[c,Math.max(1,Math.ceil(n/c))]}
+function elemSpin(Ly){
+  if(!Ly||!Ly.spin||Ly.spin==='none')return '';
+  if(Ly.spin==='swing')return '<animateTransform attributeName="transform" type="rotate" values="0;180;0" dur="'+((Ly.spinDur||6)*2).toFixed(2)+'s" repeatCount="indefinite"/>';
+  return '<animateTransform attributeName="transform" type="rotate" values="0;360" dur="'+(Ly.spinDur||6)+'s" repeatCount="indefinite"/>';
+}
 function pickElemIdx(Ly,rnd){
   var E=Ly.elems&&Ly.elems.length?Ly.elems:[{t:'?',w:1}];
   var tot=0;E.forEach(function(e){tot+=Math.max(0,e.w)});
@@ -181,8 +187,8 @@ function pickElemIdx(Ly,rnd){
   return E.length-1;
 }
 function genSymbols(Ly,color,isGlow,g,gT,drift){
-  var rnd=mulberry32(Ly.seed),t='',E=Ly.elems&&Ly.elems.length?Ly.elems:[{t:'?',w:1}];
-  function put(x,y,ch,sz){t+='<text x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" font-size="'+sz+'">'+esc(ch)+'</text>'}
+  var rnd=mulberry32(Ly.seed),t='',E=Ly.elems&&Ly.elems.length?Ly.elems:[{t:'?',w:1}],spin=elemSpin(Ly);
+  function put(x,y,ch,sz){t+='<g transform="translate('+x.toFixed(1)+' '+y.toFixed(1)+')"><g>'+(spin||'')+'<text x="0" y="0" font-size="'+sz+'">'+esc(ch)+'</text></g></g>'}
   function esz(k){return Math.max(4,(E[k].s!=null?E[k].s:(Ly.fs||26))).toFixed(1)}
   if(Ly.random){
     var d=gridDims(Ly.count);
@@ -210,8 +216,8 @@ function shapeGeom(t,s){
   return '<polygon points="'+p2+'"/>';
 }
 function genShapes(Ly,color,isGlow,g,gT,drift){
-  var rnd=mulberry32(Ly.seed),t='';
-  function put(x,y,rot,s){t+='<g transform="translate('+x.toFixed(1)+' '+y.toFixed(1)+') rotate('+rot.toFixed(1)+')">'+shapeGeom(Ly.shape,s)+'</g>'}
+  var rnd=mulberry32(Ly.seed),t='',spin=elemSpin(Ly);
+  function put(x,y,rot,s){t+='<g transform="translate('+x.toFixed(1)+' '+y.toFixed(1)+') rotate('+rot.toFixed(1)+')"><g>'+(spin||'')+shapeGeom(Ly.shape,s)+'</g></g>'}
   if(Ly.count<=1){
     put(W/2,H/2,(rnd()*2-1)*Ly.rotRand,Ly.fs); /* одна фигура — ровно по центру */
   }else{
@@ -233,7 +239,16 @@ function genShapes(Ly,color,isGlow,g,gT,drift){
 function imgContent(Ly){
   if(!Ly.src)return '<text x="'+(W/2)+'" y="'+(H/2)+'" fill="#555" font-size="36" text-anchor="middle" font-family="monospace">[ загрузи картинку ]</text>';
   var f='brightness('+Ly.bright+'%) contrast('+Ly.contrast+'%) saturate('+Ly.satur+'%) hue-rotate('+Ly.hueRot+'deg) grayscale('+Ly.gray+'%) sepia('+Ly.sepia+'%) invert('+Ly.invert+'%)';
+  var spin=elemSpin(Ly);
+  if(Ly.tileOn){
+    var ts=Math.max(40,Ly.tileSize||200),t='';
+    for(var y=0;y<H;y+=ts)
+      for(var x=0;x<W;x+=ts)
+        t+='<g transform="translate('+(x+ts/2)+' '+(y+ts/2)+')"><g>'+(spin||'')+'<image x="'+(-ts/2)+'" y="'+(-ts/2)+'" width="'+ts+'" height="'+ts+'" href="'+Ly.src+'" preserveAspectRatio="xMidYMid slice"/></g></g>';
+    return '<g style="filter:'+f+'">'+t+'</g>';
+  }
   var w=W*Ly.scale/100,h=H*Ly.scale/100;
+  if(spin)return '<g transform="translate('+(W/2)+' '+(H/2)+')"><g>'+spin+'<image href="'+Ly.src+'" width="'+w+'" height="'+h+'" x="'+(-w/2)+'" y="'+(-h/2)+'" preserveAspectRatio="xMidYMid slice" style="filter:'+f+'"/></g></g>';
   return '<g style="filter:'+f+'"><image href="'+Ly.src+'" width="'+w+'" height="'+h+'" x="'+((W-w)/2)+'" y="'+((H-h)/2)+'" preserveAspectRatio="xMidYMid slice"/></g>';
 }
 function objGeom(Ly){

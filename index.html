@@ -446,9 +446,9 @@
           <button class="btn" id="bgback2">←</button>
           <h1 id="bgedTitle">Редактор</h1>
           <button class="btn" id="bgcopyHTML">HTML</button>
-          <button class="btn" id="bgcopySVG">SVG</button>
           <button class="btn" id="bgcopyCSS">CSS</button>
           <button class="btn" id="bgsaveBtn" style="background: #fff; border-color: #fff; color: #000;">💾 Сохранить фон</button>
+          <button class="btn" id="bgprevBtn">👁 Предпросмотр</button>
         </header>
         <main>
           <aside id="bglayersBox">
@@ -485,6 +485,14 @@
           </aside>
         </main>
       </section>
+    </div>
+
+    <!-- Полноэкранный предпросмотр сайта -->
+    <div id="bgpreview" class="hidden">
+      <iframe id="bgpreviewFrame" title="Предпросмотр"></iframe>
+      <div class="bgpreview-top">
+        <button class="btn" id="bgprevExit">← Выйти из предпросмотра</button>
+      </div>
     </div>
   </div>
 
