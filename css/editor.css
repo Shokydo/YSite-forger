@@ -2043,7 +2043,18 @@ textarea {
 #bgApp #bganimCtrls {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 18px;
+}
+
+/* Воздух в секциях панели свойств BG·LAB */
+#bgApp #bgprops,
+#bgApp #bglayersBox {
+  gap: 14px;
+}
+
+#bgApp #bgprops section,
+#bgApp #bglayersBox section {
+  gap: 14px;
 }
 
 #bgApp .li {
