@@ -156,13 +156,11 @@ function renderLook(){
 
   /* символы */
   if(Ly.type==='symbols'){
-    h+=h4('Элементы и вес')+'<div class="hint">Элемент — целиком (строка/emoji). % = частота</div>';
+    h+=h4('Элементы, размер, вес')+'<div class="hint">Элемент — целиком (строка/emoji). Размер — свой у каждого. % = частота</div>';
     (Ly.elems||[]).forEach(function(e,ei){
-      h+='<div class="row"><div class="rr"><input class="txt" data-elt="'+ei+'" value="'+esc(e.t)+'" style="flex:1"><button class="btn sm" data-elr="'+ei+'">'+I.rm+'</button></div><div class="rr"><input type="range" data-elw="'+ei+'" min="0" max="100" value="'+e.w+'"><span class="wpct" style="width:44px;text-align:right">'+e.w+'%</span></div></div>';
+      h+='<div class="row"><div class="rr"><input class="txt" data-elt="'+ei+'" value="'+esc(e.t)+'" style="flex:1"><input class="num" data-els="'+ei+'" min="8" max="120" value="'+(e.s!=null?e.s:(Ly.fs||26))+'"><button class="btn sm" data-elr="'+ei+'">'+I.rm+'</button></div><div class="rr"><input type="range" data-elw="'+ei+'" min="0" max="100" value="'+e.w+'"><span class="wpct" style="width:44px;text-align:right">'+e.w+'%</span></div></div>';
     });
     h+='<button class="btn sm" id="addEl">+ элемент</button>'
-      +rw('lk','fs','Размер шрифта',8,120,1,Ly.fs)
-      +rw('lk','fsVar','Разброс размера',0,100,1,Ly.fsVar)
       +ck('lk','random','Случайное положение',Ly.random);
     if(Ly.random)h+=rw('lk','count','Количество',1,300,1,Ly.count)+rw('lk','chaos','Хаос положения',0,100,1,Ly.chaos);
     h+=ck('lk','colorMode','Цвет слоя',Ly.colorMode)
@@ -230,6 +228,9 @@ function renderLook(){
   lookEl.querySelectorAll('[data-elt]').forEach(function(inp){
     inp.addEventListener('input',function(){ Ly.elems[+inp.dataset.elt].t=inp.value; reqRender(); });
   });
+  lookEl.querySelectorAll('[data-els]').forEach(function(inp){
+    inp.addEventListener('input',function(){ Ly.elems[+inp.dataset.els].s=parseFloat(inp.value)||26; reqRender(); });
+  });
   lookEl.querySelectorAll('[data-elw]').forEach(function(inp){
     inp.addEventListener('input',function(){
       var ei=+inp.dataset.elw; Ly.elems[ei].w=+inp.value;
@@ -241,7 +242,7 @@ function renderLook(){
     b.onclick=function(){ Ly.elems.splice(+b.dataset.elr,1); renderLook(); reqRender(); };
   });
   var ae=lookEl.querySelector('#addEl');
-  if(ae)ae.onclick=function(){ Ly.elems.push({t:'A',w:50}); renderLook(); reqRender(); };
+  if(ae)ae.onclick=function(){ Ly.elems.push({t:'A',w:50,s:26}); renderLook(); reqRender(); };
 
   lookEl.querySelectorAll('[data-ex]').forEach(function(inp){
     inp.addEventListener('change',function(){

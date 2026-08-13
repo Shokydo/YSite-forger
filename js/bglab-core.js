@@ -136,7 +136,7 @@ function newLayer(t){
     roll:'none',rollDur:6,
     dist:0,distFreq:10,distAnim:false,distDuration:2,distInterval:0,distAmp:40,
     drift:false,driftColors:['#ffffff'],driftNeonColors:['#ffffff'],driftDur:6,
-    elems:[{t:'0',w:50},{t:'1',w:50}],fs:26,random:true,count:90,colorMode:true,multi:true,seed:7,chaos:100,
+    elems:[{t:'0',w:50,s:26},{t:'1',w:50,s:26}],fs:26,random:true,count:90,colorMode:true,multi:true,seed:7,chaos:100,
     shape:'circle',outline:false,rotRand:0,sizeVar:40,
     fx:'drop',radius:150,strength:50,soft:30,exclude:[],gAmp:10,gSpeed:1,
     obj:'none',objSize:26,objSpin:true,
@@ -172,33 +172,34 @@ function chaosPos(Ly,rnd,k,c,r){
   return[gx+(rx-gx)*q,gy+(ry-gy)*q];
 }
 function gridDims(n){var c=Math.max(1,Math.ceil(Math.sqrt(n*W/H)));return[c,Math.max(1,Math.ceil(n/c))]}
-function pickElem(Ly,rnd){
+function pickElemIdx(Ly,rnd){
   var E=Ly.elems&&Ly.elems.length?Ly.elems:[{t:'?',w:1}];
   var tot=0;E.forEach(function(e){tot+=Math.max(0,e.w)});
-  if(tot<=0)return E[0].t;
+  if(tot<=0)return 0;
   var r=rnd()*tot;
-  for(var k=0;k<E.length;k++){r-=Math.max(0,E[k].w);if(r<0)return E[k].t}
-  return E[E.length-1].t;
+  for(var k=0;k<E.length;k++){r-=Math.max(0,E[k].w);if(r<0)return k}
+  return E.length-1;
 }
 function genSymbols(Ly,color,isGlow,g,gT,drift){
-  var rnd=mulberry32(Ly.seed),t='';
-  function put(x,y,ch){t+='<text x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'">'+esc(ch)+'</text>'}
+  var rnd=mulberry32(Ly.seed),t='',E=Ly.elems&&Ly.elems.length?Ly.elems:[{t:'?',w:1}];
+  function put(x,y,ch,sz){t+='<text x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" font-size="'+sz+'">'+esc(ch)+'</text>'}
+  function esz(k){return Math.max(4,(E[k].s!=null?E[k].s:(Ly.fs||26))).toFixed(1)}
   if(Ly.random){
     var d=gridDims(Ly.count);
     for(var k=0;k<Ly.count;k++){
-      var p=chaosPos(Ly,rnd,k,d[0],d[1]),gr=gT>1?(rnd()*gT)|0:0,ch=pickElem(Ly,rnd);
-      if(gr===g)put(p[0],p[1],ch);
+      var p=chaosPos(Ly,rnd,k,d[0],d[1]),gr=gT>1?(rnd()*gT)|0:0,k2=pickElemIdx(Ly,rnd);
+      if(gr===g)put(p[0],p[1],E[k2].t,esz(k2));
     }
   }else{
     for(var y=Ly.size2/2;y<H+Ly.size2;y+=Ly.size2)
       for(var x=Ly.size/2;x<W+Ly.size/2;x+=Ly.size){
-        var gr2=gT>1?(rnd()*gT)|0:0,ch2=pickElem(Ly,rnd);
-        if(gr2===g)put(x,y,ch2);
+        var gr2=gT>1?(rnd()*gT)|0:0,k3=pickElemIdx(Ly,rnd);
+        if(gr2===g)put(x,y,E[k3].t,esz(k3));
       }
   }
   var uf=Ly.colorMode||isGlow;
   var an=uf&&drift?'<animate attributeName="fill" values="'+drift.vs.join(';')+'" dur="'+drift.d+'s" repeatCount="indefinite"/>':'';
-  return '<g font-family="monospace" font-size="'+Ly.fs+'" text-anchor="middle" '+(uf?'fill="'+color+'"':'')+'>'+an+t+'</g>';
+  return '<g font-family="monospace" font-size="'+(Ly.fs||26)+'" text-anchor="middle" '+(uf?'fill="'+color+'"':'')+'>'+an+t+'</g>';
 }
 function shapeGeom(t,s){
   if(t==='circle')return '<circle r="'+s+'"/>';
