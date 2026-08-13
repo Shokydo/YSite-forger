@@ -1671,7 +1671,7 @@ textarea {
   flex: 1;
   height: 5px;
   border-radius: 3px;
-  background: linear-gradient(90deg, #555, #ddd);
+  background: #fff;
   outline: none;
   cursor: pointer;
 }
@@ -2036,6 +2036,14 @@ textarea {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
+}
+
+/* Отступы между контролами в панели свойств */
+#bgApp #bglookCtrls,
+#bgApp #bganimCtrls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 #bgApp .li {
