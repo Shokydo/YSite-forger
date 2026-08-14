@@ -204,7 +204,8 @@ function renderLook(){
 
   /* фигуры */
   if(Ly.type==='shapes'){
-    h+='<div class="crow">Фигура <select data-lks="shape"><option value="circle">Круг</option><option value="square">Квадрат</option><option value="tri">Треугольник</option><option value="hex">Шестигранник</option><option value="star">Звезда</option></select></div>'
+    h+='<div class="crow">Фигура <select data-lks="shape"><option value="circle">Круг</option><option value="square">Квадрат</option><option value="tri">Треугольник</option><option value="hex">Шестигранник</option><option value="star">Звезда</option><option value="ring">Кольцо</option><option value="drop">Капля</option></select></div>'
+      +(Ly.shape==='ring'?rw('lk','ringTh','Толщина кольца',10,90,1,(Ly.ringTh==null?60:Ly.ringTh)):'')
       +rw('lk','count','Количество (1=центр)',1,200,1,Ly.count)
       +rw('lk','fs','Размер',4,400,1,Ly.fs)
       +rw('lk','sizeVar','Разброс размеров',0,100,1,Ly.sizeVar)
@@ -272,6 +273,39 @@ function renderLook(){
     });
   }
 
+  /* сеть частиц */
+  if(Ly.type==='particles'){
+    h+='<div class="crow">Реакция на курсор <select data-lks="mouse"><option value="none">Нет</option><option value="repel">Отталкивание</option><option value="attract">Притяжение</option></select></div>'
+      +rw('lk','count','Частиц',20,200,1,Ly.count)
+      +rw('lk','distance','Радиус связи',50,300,1,Ly.distance)
+      +rw('lk','fs','Размер точки',1,12,.5,Ly.fs)
+      +'<button class="btn sm" id="reroll">'+I.dice+' Перемешать</button>';
+  }
+
+  /* старый монитор */
+  if(Ly.type==='crt'){
+    h+=rw('lk','scanlineHeight','Высота полосы',1,4,1,Ly.scanlineHeight)
+      +rw('lk','scanlineAlpha','Непрозрачность полос',.05,.5,.05,Ly.scanlineAlpha)
+      +rw('lk','glitchFrequency','Частота сбоев, сек',0,2,.1,Ly.glitchFrequency)
+      +'<div class="hint">Сканлайны + периодический глитч-дрожание сигнала</div>';
+  }
+
+  /* прожектор */
+  if(Ly.type==='spotlight'){
+    h+=ck('lk','invert','Инверсия (тьма вокруг курсора)',Ly.invert)
+      +rw('lk','radius','Радиус',50,500,1,Ly.radius)
+      +rw('lk','soft','Растушёвка края',0,100,1,Ly.soft)
+      +'<div class="hint">Курсор — прожектор. Работает и в экспорте</div>';
+  }
+
+  /* матрица */
+  if(Ly.type==='terminal'){
+    h+='<label class="row"><span class="lbl">Символы</span><div class="rr"><input class="txt" data-lkst="chars" value="'+esc(Ly.chars||'0123456789ABCDEF')+'" style="flex:1"></div></label>'
+      +rw('lk','fs','Размер шрифта',8,120,1,Ly.fs)
+      +rw('lk','speed','Скорость падения',1,10,1,Ly.speed)
+      +rw('lk','trailFade','Хвост (затухание)',.05,.3,.05,Ly.trailFade);
+  }
+
   /* общее для всех */
   if(Ly.type!=='image')h+=cw('Цвет','color',Ly.color);
   h+=ck('lk','neon',Ly.type==='image'?'Блум':'Неон',Ly.neon);
@@ -281,7 +315,7 @@ function renderLook(){
   [
     ['size','Размер X',10,220,1,['grid','dots','stripes','waves','scan','symbols']],
     ['size2','Размер Y',6,220,1,['grid','dots','waves','symbols']],
-    ['th','Толщина',1,24,.5,['grid','dots','stripes','waves','scan']],
+    ['th','Толщина',1,24,.5,['grid','dots','stripes','waves','scan','particles']],
     ['bend','Искривление',-250,250,1,['grid','waves']],
     ['op','Прозрачность',0,100,1,'all'],
     ['blur','Размытие',0,30,.5,'all'],
@@ -300,6 +334,7 @@ function renderLook(){
   var sh=lookEl.querySelector('[data-lks="shape"]'); if(sh)sh.value=Ly.shape;
   var fx=lookEl.querySelector('[data-lks="fx"]');   if(fx)fx.value=Ly.fx;
   var ob=lookEl.querySelector('[data-lks="obj"]');  if(ob)ob.value=Ly.obj;
+  var ms=lookEl.querySelector('[data-lks="mouse"]');if(ms)ms.value=Ly.mouse||'none';
 
   var fi=lookEl.querySelector('#imgFile');
   if(fi)fi.onchange=function(){
@@ -312,6 +347,10 @@ function renderLook(){
   if(rr)rr.onclick=function(){ Ly.seed=(Math.random()*1e9)|0; reqRender(); };
   var go=lookEl.querySelector('#grpOpen');
   if(go)go.onclick=function(){ openGroupEditor(); };
+
+  lookEl.querySelectorAll('[data-lkst]').forEach(function(inp){
+    inp.addEventListener('input',function(){ Ly[inp.dataset.lkst]=inp.value; reqRender(); });
+  });
 
   lookEl.querySelectorAll('[data-elt]').forEach(function(inp){
     inp.addEventListener('input',function(){ Ly.elems[+inp.dataset.elt].t=inp.value; reqRender(); });
@@ -365,7 +404,7 @@ function renderLook(){
 
   bind(lookEl,'lk',Ly,function(k,v){
     if(k==='neon')renderAnim();
-    if(k==='random'||k==='multi'||k==='outline'||k==='obj'||k==='tileOn')renderLook();
+    if(k==='random'||k==='multi'||k==='outline'||k==='obj'||k==='tileOn'||k==='shape')renderLook();
     if(Ly.sync){
       if(k==='size'){ Ly.size2=v; syncPair('size2',v); }
       if(k==='size2'){ Ly.size=v; syncPair('size',v); }

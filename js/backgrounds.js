@@ -110,6 +110,8 @@ const BackgroundsLib = {
       + '      if(ring){ring.setAttribute("cx",p.x);ring.setAttribute("cy",p.y)}\n'
       + '      if(t){var k=1+c.strength/100;t.setAttribute("transform","translate("+p.x+" "+p.y+") scale("+k+") translate("+(-p.x)+" "+(-p.y)+")")}\n'
       + '      if(o)o.setAttribute("transform","translate("+p.x+" "+p.y+")");\n'
+      + '      if(c.sp){var gd=svg.querySelector("#"+c.cid);if(gd){gd.setAttribute("cx",p.x);gd.setAttribute("cy",p.y)}}\n'
+      + '      if(c.pc){var sgn=c.repel?-0.35:0.35;g.setAttribute("transform","translate("+((p.x-'+(W/2)+')*sgn).toFixed(1)+" "+((p.y-'+(H/2)+')*sgn).toFixed(1)+")")}\n'
       + '    });\n'
       + '  });\n'
       + '});\n'
