@@ -7,6 +7,8 @@ const PanelController = {
    * Показывает настройки для выбранного блока
    */
   showBlockSettings(blockId) {
+    // Тот же блок — не пересобираем панель (иначе теряется фокус при печати и лагает)
+    if (blockId === this._currentBlockId) return;
     this._currentBlockId = blockId;
     const block = Store.getBlockById(blockId);
     if (!block) {

@@ -5,7 +5,7 @@
    ========================================================= */
 
 /* ---------- 8. Состояние и навигация ---------- */
-var state=null, sel=0, bgSel=0, raf=0;
+var state=null, sel=0, bgSel=0, raf=0, lastShow=0;
 var stage=$('bgstage'), listEl=$('bglayers'), lookEl=$('bglookCtrls'), animEl=$('bganimCtrls'),
     lookTitle=$('bglookTitle'), animSec=$('bganimSec'), cardsEl=$('bgcards');
 
@@ -29,7 +29,12 @@ $('bgback2').onclick=function(){
 
 function reqRender(){
   cancelAnimationFrame(raf);
-  raf=requestAnimationFrame(function(){ show(stage,state,'p'); bindCursorFX(stage); });
+  raf=requestAnimationFrame(function f(){
+    var n=performance.now();
+    if(n-lastShow<33){ raf=requestAnimationFrame(f); return; }
+    lastShow=n;
+    show(stage,state,'p'); bindCursorFX(stage);
+  });
 }
 function refresh(){ renderList(); renderLook(); renderAnim(); reqRender(); }
 

@@ -137,7 +137,7 @@ function newLayer(t){
     spin:'none',spinDur:6,spinDir:'cw',
     dist:0,distFreq:10,distAnim:false,distDuration:2,distInterval:0,distAmp:40,
     drift:false,driftColors:['#ffffff'],driftNeonColors:['#ffffff'],driftDur:6,
-    elems:[{t:'0',w:50,s:26,r:'none',rs:6,rd:'cw'},{t:'1',w:50,s:26,r:'none',rs:6,rd:'cw'}],fs:26,random:true,count:90,colorMode:true,multi:true,seed:7,chaos:100,
+    elems:[{t:'0',w:50,s:26,r:'none',rs:6,rd:'cw'},{t:'1',w:50,s:26,r:'none',rs:6,rd:'cw'}],fs:26,random:true,count:60,colorMode:true,multi:true,seed:7,chaos:100,
     shape:'circle',outline:false,rotRand:0,sizeVar:40,
     fx:'drop',radius:150,strength:50,soft:30,exclude:[],gAmp:10,gSpeed:1,
     obj:'none',objSize:26,objSpin:true,
@@ -173,11 +173,14 @@ function chaosPos(Ly,rnd,k,c,r){
   return[gx+(rx-gx)*q,gy+(ry-gy)*q];
 }
 function gridDims(n){var c=Math.max(1,Math.ceil(Math.sqrt(n*W/H)));return[c,Math.max(1,Math.ceil(n/c))]}
+/* вращение элементов — CSS-анимацией (композитор), а не SMIL (медленный) */
+function spinStyle(d,swing,ccw){
+  var dur=(swing?d*2:d);
+  return 'animation:'+(swing?(ccw?'swccw':'swcw'):(ccw?'spccw':'spcw'))+' '+dur.toFixed(2)+'s '+(swing?'ease-in-out':'linear')+' infinite;transform-box:fill-box;transform-origin:center';
+}
 function elemSpin(Ly){
   if(!Ly||!Ly.spin||Ly.spin==='none')return '';
-  var dir=Ly.spinDir==='ccw'?-1:1;
-  if(Ly.spin==='swing')return '<animateTransform attributeName="transform" type="rotate" values="0;'+(180*dir)+';0" dur="'+((Ly.spinDur||6)*2).toFixed(2)+'s" repeatCount="indefinite"/>';
-  return '<animateTransform attributeName="transform" type="rotate" values="0;'+(360*dir)+'" dur="'+(Ly.spinDur||6)+'s" repeatCount="indefinite"/>';
+  return spinStyle((Ly.spinDur||6),Ly.spin==='swing',Ly.spinDir==='ccw');
 }
 function pickElemIdx(Ly,rnd){
   var E=Ly.elems&&Ly.elems.length?Ly.elems:[{t:'?',w:1}];
@@ -189,13 +192,11 @@ function pickElemIdx(Ly,rnd){
 }
 function elemSpinEl(e){
   if(!e||!e.r||e.r==='none')return '';
-  var d=e.rs!=null?e.rs:6,dir=e.rd==='ccw'?-1:1;
-  if(e.r==='swing')return '<animateTransform attributeName="transform" type="rotate" values="0;'+(180*dir)+';0" dur="'+(d*2).toFixed(2)+'s" repeatCount="indefinite"/>';
-  return '<animateTransform attributeName="transform" type="rotate" values="0;'+(360*dir)+'" dur="'+(d||6)+'s" repeatCount="indefinite"/>';
+  return spinStyle(e.rs!=null?e.rs:6,e.r==='swing',e.rd==='ccw');
 }
 function genSymbols(Ly,color,isGlow,g,gT,drift){
   var rnd=mulberry32(Ly.seed),t='',E=Ly.elems&&Ly.elems.length?Ly.elems:[{t:'?',w:1}];
-  function put(x,y,ch,sz,sp){t+='<g transform="translate('+x.toFixed(1)+' '+y.toFixed(1)+')"><g>'+(sp||'')+'<text x="0" y="0" font-size="'+sz+'">'+esc(ch)+'</text></g></g>'}
+  function put(x,y,ch,sz,sp){t+='<g transform="translate('+x.toFixed(1)+' '+y.toFixed(1)+')">'+(sp?'<g style="'+sp+'">':'')+'<text x="0" y="0" font-size="'+sz+'">'+esc(ch)+'</text>'+(sp?'</g>':'')+'</g>'}
   function esz(k){return Math.max(4,(E[k].s!=null?E[k].s:(Ly.fs||26))).toFixed(1)}
   if(Ly.random){
     var d=gridDims(Ly.count);
@@ -224,7 +225,7 @@ function shapeGeom(t,s){
 }
 function genShapes(Ly,color,isGlow,g,gT,drift){
   var rnd=mulberry32(Ly.seed),t='',spin=elemSpin(Ly);
-  function put(x,y,rot,s){t+='<g transform="translate('+x.toFixed(1)+' '+y.toFixed(1)+') rotate('+rot.toFixed(1)+')"><g>'+(spin||'')+shapeGeom(Ly.shape,s)+'</g></g>'}
+  function put(x,y,rot,s){t+='<g transform="translate('+x.toFixed(1)+' '+y.toFixed(1)+') rotate('+rot.toFixed(1)+')">'+(spin?'<g style="'+spin+'">':'')+shapeGeom(Ly.shape,s)+(spin?'</g>':'')+'</g>'}
   if(Ly.count<=1){
     put(W/2,H/2,(rnd()*2-1)*Ly.rotRand,Ly.fs); /* одна фигура — ровно по центру */
   }else{
@@ -251,11 +252,11 @@ function imgContent(Ly){
     var ts=Math.max(40,Ly.tileSize||200),t='';
     for(var y=0;y<H;y+=ts)
       for(var x=0;x<W;x+=ts)
-        t+='<g transform="translate('+(x+ts/2)+' '+(y+ts/2)+')"><g>'+(spin||'')+'<image x="'+(-ts/2)+'" y="'+(-ts/2)+'" width="'+ts+'" height="'+ts+'" href="'+Ly.src+'" preserveAspectRatio="xMidYMid slice"/></g></g>';
+        t+='<g transform="translate('+(x+ts/2)+' '+(y+ts/2)+')">'+(spin?'<g style="'+spin+'">':'')+'<image x="'+(-ts/2)+'" y="'+(-ts/2)+'" width="'+ts+'" height="'+ts+'" href="'+Ly.src+'" preserveAspectRatio="xMidYMid slice"/>'+(spin?'</g>':'')+'</g>';
     return '<g style="filter:'+f+'">'+t+'</g>';
   }
   var w=W*Ly.scale/100,h=H*Ly.scale/100;
-  if(spin)return '<g transform="translate('+(W/2)+' '+(H/2)+')"><g>'+spin+'<image href="'+Ly.src+'" width="'+w+'" height="'+h+'" x="'+(-w/2)+'" y="'+(-h/2)+'" preserveAspectRatio="xMidYMid slice" style="filter:'+f+'"/></g></g>';
+  if(spin)return '<g transform="translate('+(W/2)+' '+(H/2)+')"><g style="'+spin+'"><image href="'+Ly.src+'" width="'+w+'" height="'+h+'" x="'+(-w/2)+'" y="'+(-h/2)+'" preserveAspectRatio="xMidYMid slice" style="filter:'+f+'"/></g></g>';
   return '<g style="filter:'+f+'"><image href="'+Ly.src+'" width="'+w+'" height="'+h+'" x="'+((W-w)/2)+'" y="'+((H-h)/2)+'" preserveAspectRatio="xMidYMid slice"/></g>';
 }
 function objGeom(Ly){
@@ -316,6 +317,7 @@ function pulseKF(uid,name,pts,dur,int){
 /* ---------- 5. Сборка SVG ---------- */
 function buildSVG(st,uid){
   var defs='',css='',parts=[],sn=0;
+  css+='@keyframes spcw{to{transform:rotate(360deg)}}@keyframes spccw{to{transform:rotate(-360deg)}}@keyframes swcw{0%{transform:rotate(0)}50%{transform:rotate(180deg)}100%{transform:rotate(0)}}@keyframes swccw{0%{transform:rotate(0)}50%{transform:rotate(-180deg)}100%{transform:rotate(0)}}';
   var bgR='<rect width="'+W+'" height="'+H+'" fill="'+st.bgBase+'"/>';
 
   /* фоновые градиенты */
@@ -462,8 +464,8 @@ var PRESETS=[
   {name:'Капля',st:function(){return S({layers:[L('grid',{size:48,size2:48}),L('cursor',{fx:'drop',radius:170,strength:70,obj:'ring'}),L('vignette',{})]})}},
   {name:'Глитч-зона',st:function(){return S({layers:[L('dots',{color:'#ff8ae2',neonColor:'#ff3ec8'}),L('cursor',{fx:'glitch',radius:200,gAmp:14,gSpeed:1.4}),L('vignette',{})]})}},
   {name:'Геометрия',st:function(){return S({layers:[L('shapes',{shape:'hex',outline:true,count:40,fs:38,rotRand:30,sizeVar:60,breath:true,breathAmp:22,roll:'spin',rollDur:16}),L('vignette',{})]})}},
-  {name:'Звездопад',st:function(){return S({layers:[L('shapes',{shape:'star',count:80,fs:12,sizeVar:80,moveDir:'down',moveSpeed:25,color:'#fff',neonColor:'#ffd166'}),L('vignette',{})]})}},
-  {name:'Матрица',st:function(){return S({layers:[L('symbols',{color:'#3ef06b',neonColor:'#1aff8c',count:120,fs:24,moveDir:'down',moveSpeed:40,multi:true}),L('scan',{}),L('vignette',{})]})}},
+  {name:'Звездопад',st:function(){return S({layers:[L('shapes',{shape:'star',count:60,fs:12,sizeVar:80,moveDir:'down',moveSpeed:25,color:'#fff',neonColor:'#ffd166'}),L('vignette',{})]})}},
+  {name:'Матрица',st:function(){return S({layers:[L('symbols',{color:'#3ef06b',neonColor:'#1aff8c',count:70,fs:24,moveDir:'down',moveSpeed:40,multi:true}),L('scan',{}),L('vignette',{})]})}},
   {name:'Перетекание',st:function(){return S({layers:[L('grid',{pulse:true,mpulse:true,pulseDuration:2,mpulseDuration:2,pulseCurve:[{t:0,v:0,lock:1},{t:55,v:15},{t:100,v:100,lock:1}],mpulseCurve:[{t:0,v:100,lock:1},{t:55,v:85},{t:100,v:0,lock:1}]}),L('vignette',{})]})}},
   {name:'Синтвейв',st:function(){return S({bgs:[{on:true,color:'#2a0a4a',x:50,y:0,size:80,op:60},{on:false},{on:false},{on:false}],layers:[L('grid',{color:'#ff4ecd',neonColor:'#8a5cff',size:72,size2:72,moveDir:'up',moveSpeed:25}),L('scan',{}),L('vignette',{})]})}},
   {name:'Иероглифы',st:function(){return S({layers:[L('symbols',{elems:'アイウエオカキクケコ'.split('').map(function(c){return{t:c,w:10}}),color:'#ff4ecd',neonColor:'#ff2e9a',random:false,size:90,size2:90,fs:34,drift:true,driftColors:['#ff4ecd','#00ffc8'],driftNeonColors:['#ff2e9a','#8a5cff']}),L('vignette',{})]})}},

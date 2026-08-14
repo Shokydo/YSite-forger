@@ -16,10 +16,19 @@ const StoreController = {
     this._render();
 
     // Подписываемся на изменения стора
-    Store.subscribe(() => this._render());
+    Store.subscribe(() => this._scheduleRender());
 
     // Привязываем UI события
     this._bindUIEvents();
+  },
+
+  _renderTimer: 0,
+  _scheduleRender() {
+    clearTimeout(this._renderTimer);
+    this._renderTimer = setTimeout(() => {
+      this._renderTimer = 0;
+      this._render();
+    }, 40);
   },
 
   /**
