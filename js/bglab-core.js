@@ -48,7 +48,8 @@ var I={
   rm:'<svg class="ic" viewBox="0 0 16 16"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="2"/></svg>',
   bg:'<svg class="ic" viewBox="0 0 16 16"><rect x="1.5" y="1.5" width="13" height="13" rx="3" fill="none" stroke="currentColor"/><path d="M1.5 11c3-2.5 5 2.5 8 0s3.5-3 5-3" stroke="currentColor" fill="none"/></svg>',
   mirror:'<svg class="ic" viewBox="0 0 16 16"><path d="M8 1v14M3 5l-2 3 2 3M13 5l2 3-2 3" stroke="currentColor" fill="none"/></svg>',
-  dice:'<svg class="ic" viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="3" fill="none" stroke="currentColor"/><circle cx="6" cy="6" r="1.2" fill="currentColor"/><circle cx="10" cy="10" r="1.2" fill="currentColor"/></svg>'
+  dice:'<svg class="ic" viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="3" fill="none" stroke="currentColor"/><circle cx="6" cy="6" r="1.2" fill="currentColor"/><circle cx="10" cy="10" r="1.2" fill="currentColor"/></svg>',
+  grp:'<svg class="ic" viewBox="0 0 16 16"><path d="M3 3h4v4H3zM9 9h4v4H9zM9 3h4v4H9zM3 9h4v4H3z" fill="currentColor"/></svg>'
 };
 
 /* ---------- 2. Тёмный пикер цвета ---------- */
@@ -135,6 +136,7 @@ function newLayer(t){
     breath:false,breathDur:3,breathAmp:15,breathInterval:0,
     roll:'none',rollDur:6,rollDir:'cw',
     spin:'none',spinDur:6,spinDir:'cw',
+    chAmp:0,chSpeed:30,
     dist:0,distFreq:10,distAnim:false,distDuration:2,distInterval:0,distAmp:40,
     drift:false,driftColors:['#ffffff'],driftNeonColors:['#ffffff'],driftDur:6,
     elems:[{t:'0',w:50,s:26,r:'none',rs:6,rd:'cw'},{t:'1',w:50,s:26,r:'none',rs:6,rd:'cw'}],fs:26,random:true,count:60,colorMode:true,multi:true,seed:7,chaos:100,
@@ -194,21 +196,73 @@ function elemSpinEl(e){
   if(!e||!e.r||e.r==='none')return '';
   return spinStyle(e.rs!=null?e.rs:6,e.r==='swing',e.rd==='ccw');
 }
-function genSymbols(Ly,color,isGlow,g,gT,drift){
+/* хаотичное движение — случайный путь из пула кейфреймов chpA..chpE */
+function chaosStyle(Ly,chp,rnd){
+  if(!chp)return '';
+  var base=4*(30/Math.max(1,Ly.chSpeed)),d=base*(.7+rnd()*.6);
+  return 'animation:'+chp+String.fromCharCode(65+(rnd()*5|0))+' '+d.toFixed(2)+'s ease-in-out '+(-(rnd()*d)).toFixed(2)+'s infinite';
+}
+/* группы элементов: части в координатах 0..100, масштаб под размер элемента */
+var GROUPS={
+  butterfly:[
+    {ty:'e',x:31,y:44,rx:24,ry:14,rot:-20},{ty:'e',x:69,y:44,rx:24,ry:14,rot:20},
+    {ty:'e',x:33,y:66,rx:15,ry:10,rot:12},{ty:'e',x:67,y:66,rx:15,ry:10,rot:-12},
+    {ty:'l',x:50,y:52,rx:20,rot:90,th:3},
+    {ty:'e',x:50,y:28,rx:5,ry:5},
+    {ty:'l',x:45,y:24,rx:9,rot:-130,th:1.5},{ty:'l',x:55,y:24,rx:9,rot:130,th:1.5},
+    {ty:'t',x:31,y:44,ch:'A',fs:12},{ty:'t',x:69,y:44,ch:'B',fs:12}
+  ],
+  flower:(function(){var a=[];for(var i=0;i<6;i++){var an=i*60,px=(50+18*Math.cos(an*Math.PI/180)).toFixed(1),py=(55+18*Math.sin(an*Math.PI/180)).toFixed(1);a.push({ty:'e',x:+px,y:+py,rx:10,ry:16,rot:+((an+90).toFixed(1))})}return a.concat([
+    {ty:'e',x:50,y:55,rx:8,ry:8},
+    {ty:'l',x:50,y:70,rx:16,rot:90,th:3},
+    {ty:'e',x:62,y:80,rx:10,ry:5,rot:-35}
+  ])})(),
+  rocket:[
+    {ty:'r',x:50,y:46,rx:10,ry:26,rot:0},
+    {ty:'e',x:50,y:32,rx:5,ry:5},
+    {ty:'t',x:50,y:46,ch:'R',fs:14},
+    {ty:'l',x:38,y:70,rx:8,rot:40,th:3},{ty:'l',x:62,y:70,rx:8,rot:-40,th:3},
+    {ty:'e',x:50,y:82,rx:7,ry:12,rot:0}
+  ],
+  smile:[
+    {ty:'e',x:50,y:52,rx:32,ry:32},
+    {ty:'e',x:38,y:42,rx:4,ry:5},
+    {ty:'e',x:62,y:42,rx:4,ry:5},
+    {ty:'l',x:50,y:62,rx:15,rot:0,th:3},
+    {ty:'l',x:36,y:56,rx:5,rot:25,th:3},{ty:'l',x:64,y:56,rx:5,rot:-25,th:3}
+  ]
+};
+function groupContent(g,s,color){
+  var k=s/100,o='';
+  (g||[]).forEach(function(p){
+    var rr=' transform="translate('+(p.x!=null?p.x:50)+' '+(p.y!=null?p.y:50)+') rotate('+(p.rot||0)+')"';
+    var rx=p.rx!=null?p.rx:20,ry=p.ry!=null?p.ry:20;
+    if(p.ty==='e')o+='<ellipse'+rr+' rx="'+rx+'" ry="'+ry+'" fill="'+color+'"/>';
+    else if(p.ty==='r')o+='<rect'+rr+' x="'+(-rx)+'" y="'+(-ry)+'" width="'+(rx*2)+'" height="'+(ry*2)+'" fill="'+color+'"/>';
+    else if(p.ty==='l')o+='<line'+rr+' x1="'+(-rx)+'" y1="0" x2="'+rx+'" y2="0" stroke="'+color+'" stroke-width="'+(p.th||2)+'"/>';
+    else if(p.ty==='t')o+='<text'+rr+' x="0" y="0" font-size="'+(p.fs||20)+'" text-anchor="middle" dominant-baseline="central">'+esc(p.ch||'A')+'</text>';
+  });
+  return '<g transform="translate(-50 -50) scale('+k.toFixed(3)+')">'+o+'</g>';
+}
+function elemMarkup(e,Ly,color){
+  var sz=Math.max(4,(e.s!=null?e.s:(Ly.fs||26))).toFixed(1);
+  if(e.g&&e.g.length)return groupContent(e.g,parseFloat(sz),color);
+  return '<text x="0" y="0" font-size="'+sz+'">'+esc(e.t)+'</text>';
+}
+function genSymbols(Ly,color,isGlow,g,gT,drift,chp){
   var rnd=mulberry32(Ly.seed),t='',E=Ly.elems&&Ly.elems.length?Ly.elems:[{t:'?',w:1}];
-  function put(x,y,ch,sz,sp){t+='<g transform="translate('+x.toFixed(1)+' '+y.toFixed(1)+')">'+(sp?'<g style="'+sp+'">':'')+'<text x="0" y="0" font-size="'+sz+'">'+esc(ch)+'</text>'+(sp?'</g>':'')+'</g>'}
-  function esz(k){return Math.max(4,(E[k].s!=null?E[k].s:(Ly.fs||26))).toFixed(1)}
+  function put(x,y,e,sp,ch){t+='<g transform="translate('+x.toFixed(1)+' '+y.toFixed(1)+')">'+(ch?'<g style="'+ch+'">':'')+(sp?'<g style="'+sp+'">':'')+elemMarkup(e,Ly,color)+(sp?'</g>':'')+(ch?'</g>':'')+'</g>'}
   if(Ly.random){
     var d=gridDims(Ly.count);
     for(var k=0;k<Ly.count;k++){
       var p=chaosPos(Ly,rnd,k,d[0],d[1]),gr=gT>1?(rnd()*gT)|0:0,k2=pickElemIdx(Ly,rnd);
-      if(gr===g)put(p[0],p[1],E[k2].t,esz(k2),elemSpinEl(E[k2]));
+      if(gr===g)put(p[0],p[1],E[k2],elemSpinEl(E[k2]),chaosStyle(Ly,chp,rnd));
     }
   }else{
     for(var y=Ly.size2/2;y<H+Ly.size2;y+=Ly.size2)
       for(var x=Ly.size/2;x<W+Ly.size/2;x+=Ly.size){
         var gr2=gT>1?(rnd()*gT)|0:0,k3=pickElemIdx(Ly,rnd);
-        if(gr2===g)put(x,y,E[k3].t,esz(k3),elemSpinEl(E[k3]));
+        if(gr2===g)put(x,y,E[k3],elemSpinEl(E[k3]),chaosStyle(Ly,chp,rnd));
       }
   }
   var uf=Ly.colorMode||isGlow;
@@ -223,11 +277,11 @@ function shapeGeom(t,s){
   var p2='';for(var k2=0;k2<10;k2++){var r=k2%2?s*.45:s,a2=Math.PI/5*k2-Math.PI/2;p2+=(Math.cos(a2)*r).toFixed(1)+','+(Math.sin(a2)*r).toFixed(1)+' '}
   return '<polygon points="'+p2+'"/>';
 }
-function genShapes(Ly,color,isGlow,g,gT,drift){
+function genShapes(Ly,color,isGlow,g,gT,drift,chp){
   var rnd=mulberry32(Ly.seed),t='',spin=elemSpin(Ly);
-  function put(x,y,rot,s){t+='<g transform="translate('+x.toFixed(1)+' '+y.toFixed(1)+') rotate('+rot.toFixed(1)+')">'+(spin?'<g style="'+spin+'">':'')+shapeGeom(Ly.shape,s)+(spin?'</g>':'')+'</g>'}
+  function put(x,y,rot,s,ch){t+='<g transform="translate('+x.toFixed(1)+' '+y.toFixed(1)+') rotate('+rot.toFixed(1)+')">'+(ch?'<g style="'+ch+'">':'')+(spin?'<g style="'+spin+'">':'')+shapeGeom(Ly.shape,s)+(spin?'</g>':'')+(ch?'</g>':'')+'</g>'}
   if(Ly.count<=1){
-    put(W/2,H/2,(rnd()*2-1)*Ly.rotRand,Ly.fs); /* одна фигура — ровно по центру */
+    put(W/2,H/2,(rnd()*2-1)*Ly.rotRand,Ly.fs,chaosStyle(Ly,chp,rnd)); /* одна фигура — ровно по центру */
   }else{
     var d=gridDims(Ly.count);
     for(var k=0;k<Ly.count;k++){
@@ -237,26 +291,31 @@ function genShapes(Ly,color,isGlow,g,gT,drift){
       var gr=gT>1?(rnd()*gT)|0:0;
       var rot=(rnd()*2-1)*Ly.rotRand;
       var s=Math.max(2,Ly.fs*(1+(rnd()*2-1)*(Ly.sizeVar||0)/100));
-      if(gr===g)put(x,y,rot,s);
+      if(gr===g)put(x,y,rot,s,chaosStyle(Ly,chp,rnd));
     }
   }
   var at=Ly.outline?'stroke="'+color+'" fill="none" stroke-width="'+Ly.th+'"':'fill="'+color+'" stroke="none"';
   var an=drift?'<animate attributeName="'+(Ly.outline?'stroke':'fill')+'" values="'+drift.vs.join(';')+'" dur="'+drift.d+'s" repeatCount="indefinite"/>':'';
   return '<g '+at+'>'+an+t+'</g>';
 }
-function imgContent(Ly){
+function imgContent(Ly,color,chp){
   if(!Ly.src)return '<text x="'+(W/2)+'" y="'+(H/2)+'" fill="#555" font-size="36" text-anchor="middle" font-family="monospace">[ загрузи картинку ]</text>';
+  var rnd=mulberry32(Ly.seed);
   var f='brightness('+Ly.bright+'%) contrast('+Ly.contrast+'%) saturate('+Ly.satur+'%) hue-rotate('+Ly.hueRot+'deg) grayscale('+Ly.gray+'%) sepia('+Ly.sepia+'%) invert('+Ly.invert+'%)';
   var spin=elemSpin(Ly);
+  var chw=function(){return chaosStyle(Ly,chp,rnd)};
   if(Ly.tileOn){
     var ts=Math.max(40,Ly.tileSize||200),t='';
     for(var y=0;y<H;y+=ts)
-      for(var x=0;x<W;x+=ts)
-        t+='<g transform="translate('+(x+ts/2)+' '+(y+ts/2)+')">'+(spin?'<g style="'+spin+'">':'')+'<image x="'+(-ts/2)+'" y="'+(-ts/2)+'" width="'+ts+'" height="'+ts+'" href="'+Ly.src+'" preserveAspectRatio="xMidYMid slice"/>'+(spin?'</g>':'')+'</g>';
+      for(var x=0;x<W;x+=ts){
+        var ch=chw();
+        t+='<g transform="translate('+(x+ts/2)+' '+(y+ts/2)+')">'+(ch?'<g style="'+ch+'">':'')+(spin?'<g style="'+spin+'">':'')+'<image x="'+(-ts/2)+'" y="'+(-ts/2)+'" width="'+ts+'" height="'+ts+'" href="'+Ly.src+'" preserveAspectRatio="xMidYMid slice"/>'+(spin?'</g>':'')+(ch?'</g>':'')+'</g>';
+      }
     return '<g style="filter:'+f+'">'+t+'</g>';
   }
   var w=W*Ly.scale/100,h=H*Ly.scale/100;
-  if(spin)return '<g transform="translate('+(W/2)+' '+(H/2)+')"><g style="'+spin+'"><image href="'+Ly.src+'" width="'+w+'" height="'+h+'" x="'+(-w/2)+'" y="'+(-h/2)+'" preserveAspectRatio="xMidYMid slice" style="filter:'+f+'"/></g></g>';
+  var ch=chw();
+  if(spin||ch)return '<g transform="translate('+(W/2)+' '+(H/2)+')">'+(ch?'<g style="'+ch+'">':'')+(spin?'<g style="'+spin+'">':'')+'<image href="'+Ly.src+'" width="'+w+'" height="'+h+'" x="'+(-w/2)+'" y="'+(-h/2)+'" preserveAspectRatio="xMidYMid slice" style="filter:'+f+'"/>'+(spin?'</g>':'')+(ch?'</g>':'')+'</g>';
   return '<g style="filter:'+f+'"><image href="'+Ly.src+'" width="'+w+'" height="'+h+'" x="'+((W-w)/2)+'" y="'+((H-h)/2)+'" preserveAspectRatio="xMidYMid slice"/></g>';
 }
 function objGeom(Ly){
@@ -375,6 +434,16 @@ function buildSVG(st,uid){
     if(Ly.mpulse){var k2=pulseKF(uid,uid+'q'+i,Ly.mpulseCurve,Ly.mpulseDuration,Ly.mpulseInterval);css+=k2.css;mA=k2.anim}
 
     var tile=Ly.type==='symbols'||Ly.type==='image'||Ly.type==='shapes';
+    var chp='';
+    if(tile&&Ly.chAmp>0){
+      var amp=Ly.chAmp/100,px=function(v){return (v*amp).toFixed(1)+'px'};
+      chp=uid+'ca'+i;
+      css+='@keyframes '+chp+'A{0%{transform:translate(0,0)}20%{transform:translate('+px(-28)+','+px(18)+')}40%{transform:translate('+px(22)+','+px(-22)+')}60%{transform:translate('+px(-14)+','+px(-26)+')}80%{transform:translate('+px(30)+','+px(12)+')}100%{transform:translate(0,0)}}'
+        +'@keyframes '+chp+'B{0%{transform:translate(0,0)}25%{transform:translate('+px(34)+','+px(-8)+')}50%{transform:translate('+px(-10)+','+px(-30)+')}75%{transform:translate('+px(-28)+','+px(16)+')}100%{transform:translate(0,0)}}'
+        +'@keyframes '+chp+'C{0%{transform:translate(0,0)}20%{transform:translate('+px(-18)+','+px(-24)+')}45%{transform:translate('+px(24)+','+px(6)+')}70%{transform:translate('+px(-6)+','+px(28)+')}90%{transform:translate('+px(20)+','+px(-14)+')}100%{transform:translate(0,0)}}'
+        +'@keyframes '+chp+'D{0%{transform:translate(0,0)}30%{transform:translate('+px(16)+','+px(26)+')}60%{transform:translate('+px(-30)+','+px(-6)+')}100%{transform:translate(0,0)}}'
+        +'@keyframes '+chp+'E{0%{transform:translate(0,0)}20%{transform:translate('+px(-32)+','+px(-16)+')}50%{transform:translate('+px(18)+','+px(22)+')}80%{transform:translate('+px(12)+','+px(-20)+')}100%{transform:translate(0,0)}}';
+    }
     var inner='';
     if(tile){
       var gs=Ly.type==='symbols'&&Ly.multi&&Ly.moveDir!=='none'?3:1,gw='',mw='';
@@ -390,7 +459,7 @@ function buildSVG(st,uid){
           mAn='animation:'+nm+' '+du.toFixed(2)+'s linear infinite';
           ux=-dx;uy=-dy;
         }
-        function bf(c,ig,dr){return Ly.type==='image'?imgContent(Ly):(Ly.type==='shapes'?genShapes(Ly,c,ig,g,gs,dr):genSymbols(Ly,c,ig,g,gs,dr))}
+        function bf(c,ig,dr){return Ly.type==='image'?imgContent(Ly,c,chp):(Ly.type==='shapes'?genShapes(Ly,c,ig,g,gs,dr,chp):genSymbols(Ly,c,ig,g,gs,dr,chp))}
         mw+='<g '+(mAn?'style="'+mAn+'"':'')+'>'+tw(bf(Ly.color,false,drift),uid+'s'+i+'_'+g)+'</g>';
         if(Ly.neon)gw+='<g '+(mAn?'style="'+mAn+'"':'')+'>'+tw(bf(Ly.neonColor,true,driftN),uid+'sg'+i+'_'+g)+'</g>';
       }

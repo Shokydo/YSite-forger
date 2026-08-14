@@ -2442,3 +2442,73 @@ textarea {
   opacity: 1;
   pointer-events: auto;
 }
+
+/* ---------- Группы элементов ---------- */
+#bgApp .bgGroup-modal {
+  width: 640px;
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#bgApp .bgGroup-modal .modal-body {
+  overflow-y: auto;
+}
+
+#bgApp .grprev-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 170px;
+  background: #141414;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+#bgApp .grprev {
+  width: 150px;
+  height: 150px;
+}
+
+#bgApp .gpart {
+  background: #1c1c1c;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+}
+
+#bgApp .gpart .crow {
+  margin-bottom: 6px;
+}
+
+#bgApp .gpart .rr {
+  gap: 6px;
+}
+
+#bgApp .gnum {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 2px 6px;
+  background: #141414;
+}
+
+#bgApp .gnum i {
+  font-style: normal;
+  font-size: 10px;
+  color: #999;
+  min-width: 26px;
+}
+
+#bgApp .gnum input {
+  width: 52px;
+  background: transparent;
+  border: 0;
+  color: var(--text);
+  text-align: center;
+}
+

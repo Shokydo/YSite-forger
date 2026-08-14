@@ -562,6 +562,38 @@
     </div>
   </div>
 
+  <!-- Модальное окно группы элементов -->
+  <div class="modal-overlay hidden" id="bgGroupOverlay">
+    <div class="modal bgGroup-modal">
+      <div class="modal-header">
+        <h2>Сборка элемента</h2>
+        <button class="btn-close" id="bgGroupClose">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="grprev-wrap" id="bgGroupPreview"></div>
+        <div class="crow">Пресеты</div>
+        <div class="rr">
+          <button class="btn sm" data-gpreset="butterfly">Бабочка</button>
+          <button class="btn sm" data-gpreset="flower">Цветок</button>
+          <button class="btn sm" data-gpreset="rocket">Ракета</button>
+          <button class="btn sm" data-gpreset="smile">Смайл</button>
+        </div>
+        <div class="crow">Добавить часть</div>
+        <div class="rr">
+          <button class="btn sm" data-gadd="e">Овал</button>
+          <button class="btn sm" data-gadd="r">Прямоугольник</button>
+          <button class="btn sm" data-gadd="l">Палочка</button>
+          <button class="btn sm" data-gadd="t">Буква</button>
+        </div>
+        <div class="crow">Части</div>
+        <div id="bgGroupParts"></div>
+        <div class="hint">X/Y — центр части (0–100), Ш/В — её размер, Угол — поворот. Следи за превью.</div>
+      </div>
+    </div>
+  </div>
+
   <!-- Подключаем JSZip и FileSaver для ZIP-экспорта -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
