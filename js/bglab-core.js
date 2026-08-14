@@ -134,10 +134,10 @@ function newLayer(t){
     mpulse:false,mpulseDuration:1.2,mpulseInterval:0,mpulseCurve:defCurve(),
     breath:false,breathDur:3,breathAmp:15,breathInterval:0,
     roll:'none',rollDur:6,
-    spin:'none',spinDur:6,
+    spin:'none',spinDur:6,spinDir:'cw',
     dist:0,distFreq:10,distAnim:false,distDuration:2,distInterval:0,distAmp:40,
     drift:false,driftColors:['#ffffff'],driftNeonColors:['#ffffff'],driftDur:6,
-    elems:[{t:'0',w:50,s:26,r:'none',rs:6},{t:'1',w:50,s:26,r:'none',rs:6}],fs:26,random:true,count:90,colorMode:true,multi:true,seed:7,chaos:100,
+    elems:[{t:'0',w:50,s:26,r:'none',rs:6,rd:'cw'},{t:'1',w:50,s:26,r:'none',rs:6,rd:'cw'}],fs:26,random:true,count:90,colorMode:true,multi:true,seed:7,chaos:100,
     shape:'circle',outline:false,rotRand:0,sizeVar:40,
     fx:'drop',radius:150,strength:50,soft:30,exclude:[],gAmp:10,gSpeed:1,
     obj:'none',objSize:26,objSpin:true,
@@ -175,8 +175,9 @@ function chaosPos(Ly,rnd,k,c,r){
 function gridDims(n){var c=Math.max(1,Math.ceil(Math.sqrt(n*W/H)));return[c,Math.max(1,Math.ceil(n/c))]}
 function elemSpin(Ly){
   if(!Ly||!Ly.spin||Ly.spin==='none')return '';
-  if(Ly.spin==='swing')return '<animateTransform attributeName="transform" type="rotate" values="0;180;0" dur="'+((Ly.spinDur||6)*2).toFixed(2)+'s" repeatCount="indefinite"/>';
-  return '<animateTransform attributeName="transform" type="rotate" values="0;360" dur="'+(Ly.spinDur||6)+'s" repeatCount="indefinite"/>';
+  var dir=Ly.spinDir==='ccw'?-1:1;
+  if(Ly.spin==='swing')return '<animateTransform attributeName="transform" type="rotate" values="0;'+(180*dir)+';0" dur="'+((Ly.spinDur||6)*2).toFixed(2)+'s" repeatCount="indefinite"/>';
+  return '<animateTransform attributeName="transform" type="rotate" values="0;'+(360*dir)+'" dur="'+(Ly.spinDur||6)+'s" repeatCount="indefinite"/>';
 }
 function pickElemIdx(Ly,rnd){
   var E=Ly.elems&&Ly.elems.length?Ly.elems:[{t:'?',w:1}];
@@ -188,9 +189,9 @@ function pickElemIdx(Ly,rnd){
 }
 function elemSpinEl(e){
   if(!e||!e.r||e.r==='none')return '';
-  var d=e.rs!=null?e.rs:6;
-  if(e.r==='swing')return '<animateTransform attributeName="transform" type="rotate" values="0;180;0" dur="'+(d*2).toFixed(2)+'s" repeatCount="indefinite"/>';
-  return '<animateTransform attributeName="transform" type="rotate" values="0;360" dur="'+(d||6)+'s" repeatCount="indefinite"/>';
+  var d=e.rs!=null?e.rs:6,dir=e.rd==='ccw'?-1:1;
+  if(e.r==='swing')return '<animateTransform attributeName="transform" type="rotate" values="0;'+(180*dir)+';0" dur="'+(d*2).toFixed(2)+'s" repeatCount="indefinite"/>';
+  return '<animateTransform attributeName="transform" type="rotate" values="0;'+(360*dir)+'" dur="'+(d||6)+'s" repeatCount="indefinite"/>';
 }
 function genSymbols(Ly,color,isGlow,g,gT,drift){
   var rnd=mulberry32(Ly.seed),t='',E=Ly.elems&&Ly.elems.length?Ly.elems:[{t:'?',w:1}];

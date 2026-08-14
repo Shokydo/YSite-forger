@@ -160,7 +160,7 @@ function renderLook(){
   if(Ly.type==='symbols'){
     h+=h4('Элементы, размер, вес')+'<div class="hint">Элемент — целиком (строка/emoji). Размер и вращение — свои у каждого. % = частота</div>';
     (Ly.elems||[]).forEach(function(e,ei){
-      h+='<div class="row"><div class="rr"><input class="txt" data-elt="'+ei+'" value="'+esc(e.t)+'" style="flex:1"><input class="num" data-els="'+ei+'" min="8" max="120" value="'+(e.s!=null?e.s:(Ly.fs||26))+'"><button class="btn sm" data-elr="'+ei+'">'+I.rm+'</button></div><div class="rr"><input type="range" data-elw="'+ei+'" min="0" max="100" value="'+e.w+'"><span class="wpct" style="width:44px;text-align:right">'+e.w+'%</span></div><div class="rr"><span class="hint" style="width:74px">Вращение</span><select data-elrm="'+ei+'"><option value="none"'+(e.r==='none'||!e.r?' selected':'')+'>Нет</option><option value="spin"'+(e.r==='spin'?' selected':'')+'>По кругу</option><option value="swing"'+(e.r==='swing'?' selected':'')+'>Туда-сюда</option></select><input class="num" data-elrs="'+ei+'" min="0.5" max="20" step="0.1" value="'+(e.rs!=null?e.rs:6)+'" title="сек/оборот"></div></div>';
+      h+='<div class="row"><div class="rr"><input class="txt" data-elt="'+ei+'" value="'+esc(e.t)+'" style="flex:1"><input class="num" data-els="'+ei+'" min="8" max="120" value="'+(e.s!=null?e.s:(Ly.fs||26))+'"><button class="btn sm" data-elr="'+ei+'">'+I.rm+'</button></div><div class="rr"><input type="range" data-elw="'+ei+'" min="0" max="100" value="'+e.w+'"><span class="wpct" style="width:44px;text-align:right">'+e.w+'%</span></div><div class="rr"><span class="hint" style="width:52px">Вращ.</span><select data-elrm="'+ei+'" style="flex:1"><option value="none"'+(e.r==='none'||!e.r?' selected':'')+'>Нет</option><option value="spin"'+(e.r==='spin'?' selected':'')+'>По кругу</option><option value="swing"'+(e.r==='swing'?' selected':'')+'>Туда-сюда</option></select><select data-elrd="'+ei+'" style="width:60px" title="Направление вращения"><option value="cw"'+(e.rd!=='ccw'?' selected':'')+'>↻</option><option value="ccw"'+(e.rd==='ccw'?' selected':'')+'>↺</option></select><input class="num" data-elrs="'+ei+'" style="width:58px" min="0.5" max="20" step="0.1" value="'+(e.rs!=null?e.rs:6)+'" title="сек/оборот"></div></div>';
     });
     h+='<button class="btn sm" id="addEl">+ элемент</button>'
       +ck('lk','random','Случайное положение',Ly.random);
@@ -236,6 +236,9 @@ function renderLook(){
   lookEl.querySelectorAll('[data-elrm]').forEach(function(inp){
     inp.addEventListener('change',function(){ Ly.elems[+inp.dataset.elrm].r=inp.value; reqRender(); });
   });
+  lookEl.querySelectorAll('[data-elrd]').forEach(function(inp){
+    inp.addEventListener('change',function(){ Ly.elems[+inp.dataset.elrd].rd=inp.value; reqRender(); });
+  });
   lookEl.querySelectorAll('[data-elrs]').forEach(function(inp){
     inp.addEventListener('input',function(){ Ly.elems[+inp.dataset.elrs].rs=parseFloat(inp.value)||6; reqRender(); });
   });
@@ -250,7 +253,7 @@ function renderLook(){
     b.onclick=function(){ Ly.elems.splice(+b.dataset.elr,1); renderLook(); reqRender(); };
   });
   var ae=lookEl.querySelector('#addEl');
-  if(ae)ae.onclick=function(){ Ly.elems.push({t:'A',w:50,s:26}); renderLook(); reqRender(); };
+  if(ae)ae.onclick=function(){ Ly.elems.push({t:'A',w:50,s:26,r:'none',rs:6,rd:'cw'}); renderLook(); reqRender(); };
 
   lookEl.querySelectorAll('[data-ex]').forEach(function(inp){
     inp.addEventListener('change',function(){
@@ -325,10 +328,11 @@ function renderAnim(){
     +'<div class="pills">'+[['none','Нет'],['spin','360 по кругу'],['swing','Туда-сюда']].map(function(d){ return '<button data-rl="'+d[0]+'" class="'+(Ly.roll===d[0]?'on':'')+'">'+d[1]+'</button>'; }).join('')+'</div>'
     +rw('lk','rollDur','Секунд на оборот',.5,20,.1,Ly.rollDur);
 
-  if(['symbols','shapes','image'].indexOf(Ly.type)>=0){
+  if(['shapes','image'].indexOf(Ly.type)>=0){
     h+=h4('Вращение элементов')
-      +'<div class="hint">Каждый символ/фигура/плитка крутится вокруг своей оси</div>'
+      +'<div class="hint">Каждая фигура/плитка крутится вокруг своей оси</div>'
       +'<div class="pills">'+[['none','Нет'],['spin','По кругу'],['swing','Туда-сюда']].map(function(d){ return '<button data-sp="'+d[0]+'" class="'+(Ly.spin===d[0]?'on':'')+'">'+d[1]+'</button>'; }).join('')+'</div>'
+      +'<div class="pills">'+[['cw','↻ По часовой'],['ccw','↺ Против']].map(function(d){ return '<button data-spd="'+d[0]+'" class="'+(Ly.spinDir===d[0]?'on':'')+'">'+d[1]+'</button>'; }).join('')+'</div>'
       +rw('lk','spinDur','Секунд на оборот',.5,20,.1,Ly.spinDur);
   }
 
@@ -359,6 +363,7 @@ function renderAnim(){
   animEl.querySelectorAll('[data-mv]').forEach(function(b){ b.onclick=function(){ Ly.moveDir=b.dataset.mv; renderAnim(); reqRender(); }; });
   animEl.querySelectorAll('[data-rl]').forEach(function(b){ b.onclick=function(){ Ly.roll=b.dataset.rl; renderAnim(); reqRender(); }; });
   animEl.querySelectorAll('[data-sp]').forEach(function(b){ b.onclick=function(){ Ly.spin=b.dataset.sp; renderAnim(); reqRender(); }; });
+  animEl.querySelectorAll('[data-spd]').forEach(function(b){ b.onclick=function(){ Ly.spinDir=b.dataset.spd; renderAnim(); reqRender(); }; });
   var rd=function(){ drawCurves(); reqRender(); };
   var aN=animEl.querySelector('#addN'); if(aN)aN.onclick=function(){ addPoint(Ly.pulseCurve); rd(); };
   var aM=animEl.querySelector('#addM'); if(aM)aM.onclick=function(){ addPoint(Ly.mpulseCurve); rd(); };
