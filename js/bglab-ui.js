@@ -57,6 +57,14 @@ PRESETS.forEach(function(p,i){
   }catch(e){ console.error('preset fail:', p.name, e); }
 });
 
+/* однострочная галерея: прокрутка колесом мыши */
+cardsEl.addEventListener('wheel', function(e){
+  if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){
+    e.preventDefault();
+    cardsEl.scrollLeft+=e.deltaY;
+  }
+},{passive:false});
+
 /* ---------- 9. Список слоёв ---------- */
 function renderList(){
   listEl.innerHTML='';

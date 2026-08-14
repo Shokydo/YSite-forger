@@ -498,6 +498,18 @@ const Store = {
   },
 
   /**
+   * Загрузить полный снапшот проекта (заменяет текущее состояние)
+   */
+  loadProject(snapshot) {
+    this._state = JSON.parse(JSON.stringify(snapshot));
+    this._history = [];
+    this._historyIndex = -1;
+    this._saveToHistory();
+    this._notify();
+    this._scheduleAutosave();
+  },
+
+  /**
    * Получить текущую страницу
    */
   getCurrentPage() {

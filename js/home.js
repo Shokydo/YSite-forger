@@ -17,7 +17,8 @@ const AppController = {
     this._bindHomeEvents();
     this._bindEditorEvents();
     this.setEditorMode(window.__editorMode);
-    this.renderSavedBgsGrid();
+    this._activeProjectId = null;
+    this.renderProjectsGrid();
   },
 
   /* ---------- Вьюхи ---------- */
@@ -49,7 +50,7 @@ const AppController = {
 
   goHome() {
     this.showView('view-home');
-    this.renderSavedBgsGrid();
+    this.renderProjectsGrid();
     // Возврат из BG·LAB: сбрасываем состояние его экранов
     const bghome = document.getElementById('bghome');
     const bgedit = document.getElementById('bgedit');
@@ -57,68 +58,139 @@ const AppController = {
     if (bgedit) bgedit.classList.add('hidden');
   },
 
-  /* ---------- Сохранённые фоны на главной ---------- */
-  renderSavedBgsGrid() {
-    const grid = document.getElementById('savedBgsGrid');
+  /* ---------- Мои проекты ---------- */
+  renderProjectsGrid() {
+    const grid = document.getElementById('projectsGrid');
     if (!grid) return;
 
-    const all = BackgroundsLib.getAll();
+    const all = ProjectsLib.getAll();
     if (!all.length) {
-      grid.innerHTML = '<div class="bgpicker-empty">Пока нет сохранённых фонов.<br>Откройте BG·LAB, создайте фон и нажмите «Сохранить фон».</div>';
+      grid.innerHTML = '<div class="bgpicker-empty">Пока нет сохранённых проектов.<br>Создайте сайт в редакторе и нажмите «Сохранить проект».</div>';
+      this._updateSaveProjectLabel();
       return;
     }
 
-    grid.innerHTML = all.map(b => `
-      <div class="home-bg-card" data-bg-id="${b.id}">
-        <div class="prev"></div>
-        <div class="bar"><b>${this._esc(b.name)}</b><span>${new Date(b.createdAt).toLocaleDateString('ru-RU')}</span></div>
+    grid.innerHTML = all.map(p => `
+      <div class="home-bg-card" data-proj-id="${p.id}">
+        <div class="prev project-preview"></div>
+        <div class="bar"><b>${this._esc(p.name)}</b><span>${new Date(p.savedAt).toLocaleDateString('ru-RU')}</span></div>
         <div class="actions">
-          <button data-a="apply" title="Применить к странице">Применить</button>
-          <button data-a="edit" title="Редактировать в BG·LAB">Редактировать</button>
+          <button data-a="open" title="Открыть в редакторе">Открыть</button>
+          <button data-a="ren" title="Переименовать">✎</button>
           <button data-a="del" title="Удалить">✕</button>
         </div>
       </div>
     `).join('');
 
     grid.querySelectorAll('.home-bg-card').forEach(card => {
-      const id = card.dataset.bgId;
-      const b = BackgroundsLib.get(id);
+      const id = card.dataset.projId;
+      const proj = ProjectsLib.get(id);
       const prev = card.querySelector('.prev');
-      if (b && prev) {
-        try { show(prev, b.state, 'h' + id.replace(/[^a-zA-Z0-9]/g, '')); } catch (e) { console.error(e); }
-      }
-      card.querySelector('.prev').addEventListener('click', () => this.applyBg(id));
-      card.querySelector('[data-a="apply"]').addEventListener('click', (e) => { e.stopPropagation(); this.applyBg(id); });
-      card.querySelector('[data-a="edit"]').addEventListener('click', (e) => {
+      if (proj && prev) this._renderProjectPreview(prev, proj);
+      card.querySelector('.prev').addEventListener('click', () => this.openProject(id));
+      card.querySelector('[data-a="open"]').addEventListener('click', (e) => { e.stopPropagation(); this.openProject(id); });
+      card.querySelector('[data-a="ren"]').addEventListener('click', (e) => {
         e.stopPropagation();
-        if (window.openSavedInEditor) {
-          if (window.AppController) window.AppController.openBgLab();
-          window.openSavedInEditor(b);
+        const p = ProjectsLib.get(id);
+        if (!p) return;
+        const n = prompt('Новое имя проекта:', p.name);
+        if (n && n.trim()) {
+          ProjectsLib.rename(id, n.trim());
+          this.renderProjectsGrid();
+          toast('Проект переименован');
         }
       });
       card.querySelector('[data-a="del"]').addEventListener('click', (e) => {
         e.stopPropagation();
-        const bg = BackgroundsLib.get(id);
-        if (bg && confirm('Удалить фон «' + bg.name + '»?')) {
-          BackgroundsLib.remove(id);
-          this.renderSavedBgsGrid();
+        const p = ProjectsLib.get(id);
+        if (p && confirm('Удалить проект «' + p.name + '»?')) {
+          ProjectsLib.remove(id);
+          if (this._activeProjectId === id) { this._activeProjectId = null; this._updateSaveProjectLabel(); }
+          this.renderProjectsGrid();
+          toast('Проект удалён');
         }
       });
     });
+
+    this._updateSaveProjectLabel();
   },
 
-  applyBg(bgId) {
-    const page = Store.getCurrentPage();
-    if (!page) return;
-    Store.setPageBackground(page.id, bgId);
+  _renderProjectPreview(prev, proj) {
+    const st = proj.state;
+    if (!st || !Array.isArray(st.pages) || !st.pages.length) {
+      prev.innerHTML = '<div class="project-preview-empty">Пустой проект</div>';
+      return;
+    }
+    try {
+      const page = st.pages[0];
+      const inner = document.createElement('div');
+      inner.className = 'project-preview-inner';
+      inner.style.width = '1440px';
+
+      let bgHtml = '';
+      if (page.background && page.background.bgId) {
+        const bg = BackgroundsLib.get(page.background.bgId);
+        if (bg) bgHtml = '<div class="canvas-bg">' + BackgroundsLib.svgFor(bg.state, 'pp' + proj.id.replace(/[^a-zA-Z0-9]/g, '')) + '</div>';
+      }
+      inner.innerHTML = bgHtml + '<div class="canvas-content">' + (Renderer._renderBlocks ? Renderer._renderBlocks(page.blocks) : '') + '</div>';
+      prev.appendChild(inner);
+
+      const w = prev.clientWidth || 260;
+      inner.style.transform = 'scale(' + (w / 1440) + ')';
+    } catch (e) {
+      prev.innerHTML = '<div class="project-preview-empty">—</div>';
+    }
+  },
+
+  _updateSaveProjectLabel() {
+    const lb = document.getElementById('saveProjectLabel');
+    if (!lb) return;
+    lb.textContent = this._activeProjectId ? 'Сохранить изменения' : 'Сохранить проект';
+    const btn = document.getElementById('saveProjectBtn');
+    if (btn) btn.title = this._activeProjectId ? 'Обновить открытый проект' : 'Сохранить текущий проект как новый';
+  },
+
+  saveProject() {
+    const state = Store.getState();
+    if (!state) { toast('Сначала создайте сайт'); return; }
+    if (this._activeProjectId) {
+      const existing = ProjectsLib.get(this._activeProjectId);
+      if (!existing) {
+        this._activeProjectId = null;
+        this._updateSaveProjectLabel();
+      } else {
+        ProjectsLib.update(this._activeProjectId, state);
+        this.renderProjectsGrid();
+        toast('Изменения проекта сохранены ✓');
+        return;
+      }
+    }
+    const all = ProjectsLib.getAll();
+    const name = prompt('Имя проекта:', state.projectName || 'Проект ' + (all.length + 1));
+    if (name && name.trim()) {
+      const item = ProjectsLib.save(state, name.trim());
+      this._activeProjectId = item.id;
+      this.renderProjectsGrid();
+      toast('Проект сохранён ✓');
+    }
+  },
+
+  openProject(id) {
+    const proj = ProjectsLib.get(id);
+    if (!proj) return;
+    Store.loadProject(proj.state);
+    this._activeProjectId = id;
+    this._updateSaveProjectLabel();
     this.openEditor(window.__editorMode);
-    toast('Фон применён к странице «' + page.name + '»');
+    toast('Проект «' + proj.name + '» открыт');
   },
 
   /* ---------- Сброс проекта ---------- */
   resetProject() {
     if (confirm('Сбросить проект к начальному состоянию? Это действие нельзя отменить.')) {
       Store.reset();
+      this._activeProjectId = null;
+      this._updateSaveProjectLabel();
       this.openEditor(window.__editorMode);
       toast('Проект сброшен');
     }
@@ -127,16 +199,20 @@ const AppController = {
   /* ---------- События ---------- */
   _bindHomeEvents() {
     const bind = (ids, fn) => ids.forEach(id => document.getElementById(id)?.addEventListener('click', fn));
+    const fresh = () => { this._activeProjectId = null; this._updateSaveProjectLabel(); };
 
     bind(['createBgBtn', 'card-bg'], () => this.openBgLab());
-    bind(['createHtmlBtn', 'card-html'], () => this.openEditor('html'));
-    bind(['createZipBtn', 'card-zip'], () => this.openEditor('zip'));
+    bind(['createHtmlBtn', 'card-html'], () => { fresh(); this.openEditor('html'); });
+    bind(['createZipBtn', 'card-zip'], () => { fresh(); this.openEditor('zip'); });
 
     document.getElementById('backToHomeBtn')?.addEventListener('click', () => this.goHome());
-    document.getElementById('refreshBgsBtn')?.addEventListener('click', () => this.renderSavedBgsGrid());
+    document.getElementById('saveProjectBtn')?.addEventListener('click', () => this.saveProject());
+    document.getElementById('refreshProjectsBtn')?.addEventListener('click', () => this.renderProjectsGrid());
 
     document.getElementById('openSavedProjectsBtn')?.addEventListener('click', () => {
-      toast('Проект сохраняется автоматически в этом браузере');
+      const sec = document.getElementById('projectsSection');
+      this.renderProjectsGrid();
+      if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   },
 

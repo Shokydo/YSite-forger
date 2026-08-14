@@ -99,18 +99,26 @@
         </div>
       </div>
 
-      <!-- Раздел: Сохранённые фоны -->
-      <div class="home-section" id="savedBgsSection">
+      <!-- Раздел: Мои проекты -->
+      <div class="home-section" id="projectsSection">
         <div class="home-section-header">
-          <h2>Сохранённые фоны</h2>
-          <button class="btn btn-icon" id="refreshBgsBtn" title="Обновить">
+          <h2>Мои проекты</h2>
+          <button class="btn btn-primary" id="saveProjectBtn" title="Сохранить текущий проект">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            <span id="saveProjectLabel">Сохранить проект</span>
+          </button>
+          <button class="btn btn-icon" id="refreshProjectsBtn" title="Обновить">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M23 4v6h-6M1 20v-6h6"/>
               <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
             </svg>
           </button>
         </div>
-        <div class="home-bgs-grid" id="savedBgsGrid"></div>
+        <div class="home-bgs-grid" id="projectsGrid"></div>
       </div>
     </main>
   </div>
@@ -610,6 +618,7 @@
   <!-- SiteForge Modules -->
   <script src="js/store.js"></script>
   <script src="js/backgrounds.js"></script>
+  <script src="js/projects.js"></script>
   <script src="js/blocks.js"></script>
   <script src="js/renderer.js"></script>
   <script src="js/dragdrop.js"></script>
