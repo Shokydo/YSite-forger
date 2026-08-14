@@ -158,7 +158,7 @@ function newLayer(t){
   if(t==='scan'){b.size=6;b.th=2;b.color='#000';b.op=30}
   if(t==='vignette'){b.color='#000';b.op=80}
   if(t==='symbols'){b.color='#3ef06b';b.neonColor='#1aff8c'}
-  if(t==='group'){b.count=1;b.fs=80;b.rotRand=0;b.sizeVar=0;b.random=false;b.g=JSON.parse(JSON.stringify(GROUPS.butterfly))}
+  if(t==='group'){b.count=1;b.fs=80;b.rotRand=0;b.sizeVar=0;b.random=false;b.g=defGroup()}
   if(t==='shapes'){b.count=1;b.fs=60}
   if(t==='cursor'){b.color='#fff'}
   if(t==='particles'){b.color='#00ffc8';b.neonColor='#0090ff';b.count=60;b.distance=140;b.mouse='none';b.fs=3;b.th=1}
@@ -215,35 +215,7 @@ function chaosStyle(Ly,chp,rnd){
   return 'animation:'+chp+String.fromCharCode(65+(rnd()*5|0))+' '+d.toFixed(2)+'s ease-in-out '+(-(rnd()*d)).toFixed(2)+'s infinite';
 }
 /* группы элементов: части в координатах 0..100, масштаб под размер элемента */
-var GROUPS={
-  butterfly:[
-    {ty:'e',x:31,y:44,rx:24,ry:14,rot:-20},{ty:'e',x:69,y:44,rx:24,ry:14,rot:20},
-    {ty:'e',x:33,y:66,rx:15,ry:10,rot:12},{ty:'e',x:67,y:66,rx:15,ry:10,rot:-12},
-    {ty:'l',x:50,y:52,rx:20,rot:90,th:3},
-    {ty:'e',x:50,y:28,rx:5,ry:5},
-    {ty:'l',x:45,y:24,rx:9,rot:-130,th:1.5},{ty:'l',x:55,y:24,rx:9,rot:130,th:1.5},
-    {ty:'t',x:31,y:44,ch:'A',fs:12},{ty:'t',x:69,y:44,ch:'B',fs:12}
-  ],
-  flower:(function(){var a=[];for(var i=0;i<6;i++){var an=i*60,px=(50+18*Math.cos(an*Math.PI/180)).toFixed(1),py=(55+18*Math.sin(an*Math.PI/180)).toFixed(1);a.push({ty:'e',x:+px,y:+py,rx:10,ry:16,rot:+((an+90).toFixed(1))})}return a.concat([
-    {ty:'e',x:50,y:55,rx:8,ry:8},
-    {ty:'l',x:50,y:70,rx:16,rot:90,th:3},
-    {ty:'e',x:62,y:80,rx:10,ry:5,rot:-35}
-  ])})(),
-  rocket:[
-    {ty:'r',x:50,y:46,rx:10,ry:26,rot:0},
-    {ty:'e',x:50,y:32,rx:5,ry:5},
-    {ty:'t',x:50,y:46,ch:'R',fs:14},
-    {ty:'l',x:38,y:70,rx:8,rot:40,th:3},{ty:'l',x:62,y:70,rx:8,rot:-40,th:3},
-    {ty:'e',x:50,y:82,rx:7,ry:12,rot:0}
-  ],
-  smile:[
-    {ty:'e',x:50,y:52,rx:32,ry:32},
-    {ty:'e',x:38,y:42,rx:4,ry:5},
-    {ty:'e',x:62,y:42,rx:4,ry:5},
-    {ty:'l',x:50,y:62,rx:15,rot:0,th:3},
-    {ty:'l',x:36,y:56,rx:5,rot:25,th:3},{ty:'l',x:64,y:56,rx:5,rot:-25,th:3}
-  ]
-};
+function defGroup(){return[{ty:'t',x:50,y:50,ch:'A',fs:40,rot:0}]}
 function groupContent(g,s,color,outline,perPart){
   var k=s/100,o='';
   var F=outline?function(a){return 'stroke="'+color+'" fill="none" stroke-width="'+(a.th||2)+'"'}:function(){return 'fill="'+color+'"'};
@@ -317,7 +289,7 @@ function genShapes(Ly,color,isGlow,g,gT,drift,chp){
   return '<g '+at+'>'+an+t+'</g>';
 }
 function genGroup(Ly,color,isGlow,g,gT,drift,chp){
-  var rnd=mulberry32(Ly.seed),t='',spin=elemSpin(Ly),grp=Ly.g||GROUPS.butterfly;
+  var rnd=mulberry32(Ly.seed),t='',spin=elemSpin(Ly),grp=Ly.g||defGroup();
   function put(x,y,rot,s,ch){t+='<g transform="translate('+x.toFixed(1)+' '+y.toFixed(1)+') rotate('+rot.toFixed(1)+')">'+(ch?'<g style="'+ch+'">':'')+(spin?'<g style="'+spin+'">':'')+groupContent(grp,s,color,Ly.outline)+(spin?'</g>':'')+(ch?'</g>':'')+'</g>'}
   if(Ly.count<=1){
     put(W/2,H/2,(rnd()*2-1)*Ly.rotRand,Ly.fs,chaosStyle(Ly,chp,rnd));

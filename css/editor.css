@@ -2661,14 +2661,9 @@ textarea {
   line-height: 1;
 }
 
-#bgGroupOverlay .gadd-row .btn,
-#bgGroupOverlay .gpreset-crow .btn {
+#bgGroupOverlay .gadd-row .btn {
   padding: 5px 10px;
   font-size: 12px;
-}
-
-#bgGroupOverlay .gpreset-crow {
-  justify-content: flex-start;
 }
 
 #bgGroupOverlay .grow-row {

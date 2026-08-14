@@ -220,7 +220,7 @@ function renderLook(){
   /* сборка фигур */
   if(Ly.type==='group'){
     h+='<button class="btn sm" id="grpOpen">'+I.grp+' Открыть редактор сборки</button>'
-      +'<div class="hint">Слой рисует собранную фигуру (бабочка, цветок…) целиком</div>'
+      +'<div class="hint">Слой рисует собранную фигуру из символов целиком</div>'
       +rw('lk','count','Количество (1=центр)',1,200,1,Ly.count)
       +rw('lk','fs','Размер',4,400,1,Ly.fs)
       +rw('lk','sizeVar','Разброс размеров',0,100,1,Ly.sizeVar)
@@ -380,7 +380,7 @@ function renderLook(){
   lookEl.querySelectorAll('[data-elm]').forEach(function(inp){
     inp.addEventListener('change',function(){
       var e=Ly.elems[+inp.dataset.elm]; e.mode=inp.value;
-      if(e.mode==='grp'&&!e.g)e.g=JSON.parse(JSON.stringify(GROUPS.butterfly));
+      if(e.mode==='grp'&&!e.g)e.g=defGroup();
       renderLook(); reqRender();
     });
   });
@@ -390,7 +390,7 @@ function renderLook(){
   var ae=lookEl.querySelector('#addEl');
   if(ae)ae.onclick=function(){ Ly.elems.push({t:'A',w:50,s:26,r:'none',rs:6,rd:'cw',mode:'std'}); renderLook(); reqRender(); };
   var ag=lookEl.querySelector('#addElGrp');
-  if(ag)ag.onclick=function(){ Ly.elems.push({t:'A',w:50,s:40,r:'none',rs:6,rd:'cw',mode:'grp',g:JSON.parse(JSON.stringify(GROUPS.butterfly))}); renderLook(); reqRender(); };
+  if(ag)ag.onclick=function(){ Ly.elems.push({t:'A',w:50,s:40,r:'none',rs:6,rd:'cw',mode:'grp',g:defGroup()}); renderLook(); reqRender(); };
 
   lookEl.querySelectorAll('[data-ex]').forEach(function(inp){
     inp.addEventListener('change',function(){
@@ -603,7 +603,7 @@ function openGroupEditor(ei){
   grpCtx=ei!=null?{kind:'el',ei:ei,selPart:0}:{kind:'layer',selPart:0};
   var host=grpHost();
   if(!host)return;
-  if(!host.g)host.g=JSON.parse(JSON.stringify(GROUPS.butterfly));
+  if(!host.g)host.g=defGroup();
   if(!(host.g[grpCtx.selPart]))grpCtx.selPart=0;
   var T=$('bgGroupTitle');
   if(T)T.textContent=grpCtx.kind==='el'
@@ -624,9 +624,9 @@ function renderGroupPreview(){
   var host=grpHost(), box=$('bgGroupPreview');
   if(!host||!box)return;
   var g=host.g||[];
-  if(!g.length){ box.innerHTML='<div class="hint" style="padding:14px;text-align:center;color:#999">Пусто. Добавь части или возьми пресет.</div>'; return; }
+  if(!g.length){ box.innerHTML='<div class="hint" style="padding:14px;text-align:center;color:#999">Пусто. Добавь части.</div>'; return; }
   try{
-    var t='<svg viewBox="0 0 100 100">'+groupContent(g,100,'#fff',false,function(p,i){
+    var t='<svg viewBox="0 0 100 100"><g transform="translate(50 50)">'+groupContent(g,100,'#fff',false,function(p,i){
       var b=gpartBox(p);
       var tr='transform="translate('+((p.x!=null?p.x:50)-50).toFixed(2)+' '+((p.y!=null?p.y:50)-50).toFixed(2)+') rotate('+(p.rot||0)+')"';
       var hit='<rect x="'+(-b.rx)+'" y="'+(-b.ry)+'" width="'+(b.rx*2)+'" height="'+(b.ry*2)+'" fill="rgba(74,158,255,0.05)" stroke="rgba(74,158,255,0.3)" '+tr+'/>';
@@ -765,14 +765,6 @@ function closeGroupEditor(){ $('bgGroupOverlay').classList.add('hidden'); }
       else if(ty==='l')g.push({ty:'l',x:50,y:50,rx:20,rot:0,th:2});
       else g.push({ty:'t',x:50,y:50,ch:'A',fs:20,rot:0});
       grpCtx.selPart=g.length-1;
-      renderPartsBar(); renderPartPanel(); renderGroupPreview(); reqRender();
-    };
-  });
-  ov.querySelectorAll('[data-gpreset]').forEach(function(b){
-    b.onclick=function(){
-      var host=grpHost(); if(!host)return;
-      host.g=JSON.parse(JSON.stringify(GROUPS[b.dataset.gpreset]||[]));
-      grpCtx.selPart=0;
       renderPartsBar(); renderPartPanel(); renderGroupPreview(); reqRender();
     };
   });
