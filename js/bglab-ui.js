@@ -697,9 +697,9 @@ function renderBGSaved(){
       openSavedInEditor(b);
     };
     var del=c.querySelector('[data-a="del"]');
-    del.onclick=function(e){
+    del.onclick=async function(e){
       e.stopPropagation();
-      if(confirm('Удалить фон «'+b.name+'»?')){
+      if(await Dialogs.confirm('Удалить фон «'+b.name+'»?',{danger:true,okText:'Удалить'})){
         BackgroundsLib.remove(b.id);
         renderBGSaved();
       }
@@ -717,7 +717,7 @@ function openSavedInEditor(b){
   setSaveLabel();
   refresh();
 }
-$('bgsaveBtn').onclick=function(){
+$('bgsaveBtn').onclick=async function(){
   if(!state){ toast('Сначала создайте фон'); return; }
   if(bgEditId){
     if(!BackgroundsLib.get(bgEditId)){ bgEditId=null; setSaveLabel(); }
@@ -729,7 +729,7 @@ $('bgsaveBtn').onclick=function(){
     }
   }
   var all=BackgroundsLib.getAll();
-  var name=prompt('Имя фона:', 'Фон '+(all.length+1));
+  var name=await Dialogs.prompt('Имя фона:', 'Фон '+(all.length+1));
   if(name&&name.trim()){
     var item=BackgroundsLib.save(JSON.parse(JSON.stringify(state)), name.trim());
     bgEditId=item.id;

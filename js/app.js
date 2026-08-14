@@ -217,7 +217,7 @@ const StoreController = {
     });
 
     // Двойной клик для редактирования текста
-    document.getElementById('canvasPage')?.addEventListener('dblclick', (e) => {
+    document.getElementById('canvasPage')?.addEventListener('dblclick', async (e) => {
       const heading = e.target.closest('.rendered-heading');
       const paragraph = e.target.closest('.rendered-paragraph');
       const textEl = heading || paragraph;
@@ -226,7 +226,7 @@ const StoreController = {
         const blockId = textEl.closest('[data-block-id]')?.dataset.blockId;
         if (blockId) {
           const currentText = textEl.textContent;
-          const newText = prompt('Редактировать текст:', currentText);
+          const newText = await Dialogs.prompt('Редактировать текст:', currentText);
           if (newText !== null && newText.trim()) {
             Store.updateBlock(blockId, { content: newText.trim() });
           }

@@ -61,8 +61,8 @@ const PagesController = {
     });
 
     // Добавление страницы
-    document.getElementById('addPageBtn')?.addEventListener('click', () => {
-      const name = prompt('Введите название новой страницы:', 'Новая страница');
+    document.getElementById('addPageBtn')?.addEventListener('click', async () => {
+      const name = await Dialogs.prompt('Введите название новой страницы:', 'Новая страница');
       if (name && name.trim()) {
         Store.addPage(name.trim());
       }
@@ -87,12 +87,12 @@ const PagesController = {
   /**
    * Переименовать страницу
    */
-  renamePage(pageId) {
+  async renamePage(pageId) {
     const state = Store.getState();
     const page = state.pages.find(p => p.id === pageId);
     if (!page) return;
 
-    const newName = prompt('Введите новое название страницы:', page.name);
+    const newName = await Dialogs.prompt('Введите новое название страницы:', page.name);
     if (newName && newName.trim()) {
       Store.renamePage(pageId, newName.trim());
     }
@@ -101,13 +101,13 @@ const PagesController = {
   /**
    * Удалить страницу
    */
-  removePage(pageId) {
+  async removePage(pageId) {
     const state = Store.getState();
     if (state.pages.length <= 1) {
-      alert('Нельзя удалить последнюю страницу.');
+      await Dialogs.alert('Нельзя удалить последнюю страницу.');
       return;
     }
-    if (confirm('Удалить эту страницу?')) {
+    if (await Dialogs.confirm('Удалить эту страницу?', { danger: true, okText: 'Удалить' })) {
       Store.removePage(pageId);
     }
   },

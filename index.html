@@ -443,9 +443,9 @@
         <div id="bgcards"></div>
         
         <!-- Сохранённые фоны в BG·LAB -->
-        <div class="home-section" style="padding: 20px 40px 40px;">
-          <h2 style="font-size: 14px; text-transform: uppercase; letter-spacing: .1em; color: #fff; margin-bottom: 12px;">Сохранённые фоны</h2>
-          <div id="bgsaved" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;"></div>
+        <div class="home-section" style="max-width:1500px;margin:0 auto;padding:20px 40px 40px;">
+          <h2 style="font-size: 14px; text-transform: uppercase; letter-spacing: .1em; color: #fff; margin-bottom: 12px; text-align: center;">Сохранённые фоны</h2>
+          <div id="bgsaved"></div>
         </div>
       </section>
       
@@ -619,6 +619,9 @@
   
   <!-- BG·LAB Core -->
   <script src="js/bglab-core.js"></script>
+  
+  <!-- CSS-диалоги (замена alert/confirm/prompt) -->
+  <script src="js/dialogs.js"></script>
   
   <!-- SiteForge Modules -->
   <script src="js/store.js"></script>

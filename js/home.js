@@ -89,21 +89,21 @@ const AppController = {
       if (proj && prev) this._renderProjectPreview(prev, proj);
       card.querySelector('.prev').addEventListener('click', () => this.openProject(id));
       card.querySelector('[data-a="open"]').addEventListener('click', (e) => { e.stopPropagation(); this.openProject(id); });
-      card.querySelector('[data-a="ren"]').addEventListener('click', (e) => {
+      card.querySelector('[data-a="ren"]').addEventListener('click', async (e) => {
         e.stopPropagation();
         const p = ProjectsLib.get(id);
         if (!p) return;
-        const n = prompt('Новое имя проекта:', p.name);
+        const n = await Dialogs.prompt('Новое имя проекта:', p.name);
         if (n && n.trim()) {
           ProjectsLib.rename(id, n.trim());
           this.renderProjectsGrid();
           toast('Проект переименован');
         }
       });
-      card.querySelector('[data-a="del"]').addEventListener('click', (e) => {
+      card.querySelector('[data-a="del"]').addEventListener('click', async (e) => {
         e.stopPropagation();
         const p = ProjectsLib.get(id);
-        if (p && confirm('Удалить проект «' + p.name + '»?')) {
+        if (p && await Dialogs.confirm('Удалить проект «' + p.name + '»?', { danger: true, okText: 'Удалить' })) {
           ProjectsLib.remove(id);
           if (this._activeProjectId === id) { this._activeProjectId = null; this._updateSaveProjectLabel(); }
           this.renderProjectsGrid();
@@ -150,7 +150,7 @@ const AppController = {
     if (btn) btn.title = this._activeProjectId ? 'Обновить открытый проект' : 'Сохранить текущий проект как новый';
   },
 
-  saveProject() {
+  async saveProject() {
     const state = Store.getState();
     if (!state) { toast('Сначала создайте сайт'); return; }
     if (this._activeProjectId) {
@@ -166,7 +166,7 @@ const AppController = {
       }
     }
     const all = ProjectsLib.getAll();
-    const name = prompt('Имя проекта:', state.projectName || 'Проект ' + (all.length + 1));
+    const name = await Dialogs.prompt('Имя проекта:', state.projectName || 'Проект ' + (all.length + 1));
     if (name && name.trim()) {
       const item = ProjectsLib.save(state, name.trim());
       this._activeProjectId = item.id;
@@ -186,8 +186,8 @@ const AppController = {
   },
 
   /* ---------- Сброс проекта ---------- */
-  resetProject() {
-    if (confirm('Сбросить проект к начальному состоянию? Это действие нельзя отменить.')) {
+  async resetProject() {
+    if (await Dialogs.confirm('Сбросить проект к начальному состоянию? Это действие нельзя отменить.', { danger: true, okText: 'Сбросить' })) {
       Store.reset();
       this._activeProjectId = null;
       this._updateSaveProjectLabel();

@@ -2632,3 +2632,42 @@ textarea {
   margin-bottom: 4px;
 }
 
+
+/* ---------- CSS-диалоги (Dialogs) ---------- */
+.dlg-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+.dlg-overlay.hidden { display: none !important; }
+.dlg {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  width: 420px;
+  max-width: 92vw;
+  padding: 24px;
+}
+.dlg h3 { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 10px; }
+.dlg-msg { color: var(--text-secondary); font-size: 14px; line-height: 1.55; margin-bottom: 18px; word-break: break-word; }
+.dlg-input {
+  width: 100%;
+  background: var(--bg-darker);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  outline: none;
+  margin-bottom: 18px;
+}
+.dlg-input:focus { border-color: var(--border-hover); }
+.dlg-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.dlg-actions .btn { min-width: 90px; justify-content: center; }
+.btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+.btn-danger:hover { background: #ff5555; border-color: #ff5555; }
