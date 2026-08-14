@@ -326,6 +326,7 @@ function renderAnim(){
     +rw('lk','breathInterval','Пауза после, сек',0,5,.1,Ly.breathInterval)
     +h4('Ролл (поворот)')
     +'<div class="pills">'+[['none','Нет'],['spin','360 по кругу'],['swing','Туда-сюда']].map(function(d){ return '<button data-rl="'+d[0]+'" class="'+(Ly.roll===d[0]?'on':'')+'">'+d[1]+'</button>'; }).join('')+'</div>'
+    +'<div class="pills">'+[['cw','↻ По часовой'],['ccw','↺ Против']].map(function(d){ return '<button data-rld="'+d[0]+'" class="'+(Ly.rollDir===d[0]?'on':'')+'">'+d[1]+'</button>'; }).join('')+'</div>'
     +rw('lk','rollDur','Секунд на оборот',.5,20,.1,Ly.rollDur);
 
   if(['shapes','image'].indexOf(Ly.type)>=0){
@@ -362,6 +363,7 @@ function renderAnim(){
 
   animEl.querySelectorAll('[data-mv]').forEach(function(b){ b.onclick=function(){ Ly.moveDir=b.dataset.mv; renderAnim(); reqRender(); }; });
   animEl.querySelectorAll('[data-rl]').forEach(function(b){ b.onclick=function(){ Ly.roll=b.dataset.rl; renderAnim(); reqRender(); }; });
+  animEl.querySelectorAll('[data-rld]').forEach(function(b){ b.onclick=function(){ Ly.rollDir=b.dataset.rld; renderAnim(); reqRender(); }; });
   animEl.querySelectorAll('[data-sp]').forEach(function(b){ b.onclick=function(){ Ly.spin=b.dataset.sp; renderAnim(); reqRender(); }; });
   animEl.querySelectorAll('[data-spd]').forEach(function(b){ b.onclick=function(){ Ly.spinDir=b.dataset.spd; renderAnim(); reqRender(); }; });
   var rd=function(){ drawCurves(); reqRender(); };

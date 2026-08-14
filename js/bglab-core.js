@@ -133,7 +133,7 @@ function newLayer(t){
     pulse:false,pulseDuration:1.2,pulseInterval:0,pulseCurve:defCurve(),
     mpulse:false,mpulseDuration:1.2,mpulseInterval:0,mpulseCurve:defCurve(),
     breath:false,breathDur:3,breathAmp:15,breathInterval:0,
-    roll:'none',rollDur:6,
+    roll:'none',rollDur:6,rollDir:'cw',
     spin:'none',spinDur:6,spinDir:'cw',
     dist:0,distFreq:10,distAnim:false,distDuration:2,distInterval:0,distAmp:40,
     drift:false,driftColors:['#ffffff'],driftNeonColors:['#ffffff'],driftDur:6,
@@ -412,9 +412,9 @@ function buildSVG(st,uid){
 
     /* ролл и дыхание */
     if(Ly.roll!=='none'){
-      var ra;
-      if(Ly.roll==='spin'){css+='@keyframes '+uid+'r'+i+'{to{transform:rotate(360deg)}}';ra=uid+'r'+i+' '+Ly.rollDur+'s linear infinite'}
-      else{css+='@keyframes '+uid+'r'+i+'{0%{transform:rotate(0)}50%{transform:rotate(360deg)}100%{transform:rotate(0)}}';ra=uid+'r'+i+' '+(Ly.rollDur*2).toFixed(2)+'s ease-in-out infinite'}
+      var ra, rdir=Ly.rollDir==='ccw'?-360:360;
+      if(Ly.roll==='spin'){css+='@keyframes '+uid+'r'+i+'{to{transform:rotate('+rdir+'deg)}}';ra=uid+'r'+i+' '+Ly.rollDur+'s linear infinite'}
+      else{css+='@keyframes '+uid+'r'+i+'{0%{transform:rotate(0)}50%{transform:rotate('+rdir+'deg)}100%{transform:rotate(0)}}';ra=uid+'r'+i+' '+(Ly.rollDur*2).toFixed(2)+'s ease-in-out infinite'}
       inner='<g style="transform-origin:800px 450px;animation:'+ra+'">'+inner+'</g>';
     }
     if(Ly.breath){
