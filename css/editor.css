@@ -1266,6 +1266,10 @@ textarea {
   z-index: 1000;
 }
 
+.modal-overlay.hidden {
+  display: none !important;
+}
+
 .modal {
   background: var(--bg-panel);
   border-radius: 12px;
