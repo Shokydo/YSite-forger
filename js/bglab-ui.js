@@ -161,11 +161,26 @@ function renderLook(){
       +'<button class="btn sm" id="reroll">'+I.dice+' Перемешать</button>';
   }
 
+  /* сборка фигур */
+  if(Ly.type==='group'){
+    h+='<button class="btn sm" id="grpOpen">'+I.grp+' Открыть редактор сборки</button>'
+      +'<div class="hint">Слой рисует собранную фигуру (бабочка, цветок…) целиком</div>'
+      +rw('lk','count','Количество (1=центр)',1,200,1,Ly.count)
+      +rw('lk','fs','Размер',4,400,1,Ly.fs)
+      +rw('lk','sizeVar','Разброс размеров',0,100,1,Ly.sizeVar)
+      +ck('lk','random','Случайное положение',Ly.random);
+    if(Ly.random&&Ly.count>1)h+=rw('lk','chaos','Хаос положения',0,100,1,Ly.chaos);
+    h+=ck('lk','outline','Контур',Ly.outline)
+      +rw('lk','th','Толщина контура',1,20,.5,Ly.th)
+      +rw('lk','rotRand','Разный поворот (±)',0,180,1,Ly.rotRand)
+      +'<button class="btn sm" id="reroll">'+I.dice+' Перемешать</button>';
+  }
+
   /* символы */
   if(Ly.type==='symbols'){
     h+=h4('Элементы, размер, вес')+'<div class="hint">Элемент — целиком (строка/emoji). Размер и вращение — свои у каждого. % = частота</div>';
     (Ly.elems||[]).forEach(function(e,ei){
-      h+='<div class="row"><div class="rr"><input class="txt" data-elt="'+ei+'" value="'+esc(e.t)+'" style="flex:1"><input class="num" data-els="'+ei+'" min="8" max="120" value="'+(e.s!=null?e.s:(Ly.fs||26))+'"><button class="btn sm" data-elg="'+ei+'" title="Собрать из фигур и букв">'+I.grp+'</button><button class="btn sm" data-elr="'+ei+'">'+I.rm+'</button></div><div class="rr"><input type="range" data-elw="'+ei+'" min="0" max="100" value="'+e.w+'"><span class="wpct" style="width:44px;text-align:right">'+e.w+'%</span></div><div class="rr"><span class="hint" style="width:52px">Вращ.</span><select data-elrm="'+ei+'" style="flex:1"><option value="none"'+(e.r==='none'||!e.r?' selected':'')+'>Нет</option><option value="spin"'+(e.r==='spin'?' selected':'')+'>По кругу</option><option value="swing"'+(e.r==='swing'?' selected':'')+'>Туда-сюда</option></select><select data-elrd="'+ei+'" style="width:60px" title="Направление вращения"><option value="cw"'+(e.rd!=='ccw'?' selected':'')+'>↻</option><option value="ccw"'+(e.rd==='ccw'?' selected':'')+'>↺</option></select><input class="num" data-elrs="'+ei+'" style="width:58px" min="0.5" max="20" step="0.1" value="'+(e.rs!=null?e.rs:6)+'" title="сек/оборот"></div></div>';
+      h+='<div class="row"><div class="rr"><input class="txt" data-elt="'+ei+'" value="'+esc(e.t)+'" style="flex:1"><input class="num" data-els="'+ei+'" min="8" max="120" value="'+(e.s!=null?e.s:(Ly.fs||26))+'"><button class="btn sm" data-elr="'+ei+'">'+I.rm+'</button></div><div class="rr"><input type="range" data-elw="'+ei+'" min="0" max="100" value="'+e.w+'"><span class="wpct" style="width:44px;text-align:right">'+e.w+'%</span></div><div class="rr"><span class="hint" style="width:52px">Вращ.</span><select data-elrm="'+ei+'" style="flex:1"><option value="none"'+(e.r==='none'||!e.r?' selected':'')+'>Нет</option><option value="spin"'+(e.r==='spin'?' selected':'')+'>По кругу</option><option value="swing"'+(e.r==='swing'?' selected':'')+'>Туда-сюда</option></select><select data-elrd="'+ei+'" style="width:60px" title="Направление вращения"><option value="cw"'+(e.rd!=='ccw'?' selected':'')+'>↻</option><option value="ccw"'+(e.rd==='ccw'?' selected':'')+'>↺</option></select><input class="num" data-elrs="'+ei+'" style="width:58px" min="0.5" max="20" step="0.1" value="'+(e.rs!=null?e.rs:6)+'" title="сек/оборот"></div></div>';
     });
     h+='<button class="btn sm" id="addEl">+ элемент</button>'
       +ck('lk','random','Случайное положение',Ly.random);
@@ -231,6 +246,8 @@ function renderLook(){
   };
   var rr=lookEl.querySelector('#reroll');
   if(rr)rr.onclick=function(){ Ly.seed=(Math.random()*1e9)|0; reqRender(); };
+  var go=lookEl.querySelector('#grpOpen');
+  if(go)go.onclick=function(){ openGroupEditor(); };
 
   lookEl.querySelectorAll('[data-elt]').forEach(function(inp){
     inp.addEventListener('input',function(){ Ly.elems[+inp.dataset.elt].t=inp.value; reqRender(); });
@@ -256,9 +273,6 @@ function renderLook(){
   });
   lookEl.querySelectorAll('[data-elr]').forEach(function(b){
     b.onclick=function(){ Ly.elems.splice(+b.dataset.elr,1); renderLook(); reqRender(); };
-  });
-  lookEl.querySelectorAll('[data-elg]').forEach(function(b){
-    b.onclick=function(){ openGroupEditor(+b.dataset.elg); };
   });
   var ae=lookEl.querySelector('#addEl');
   if(ae)ae.onclick=function(){ Ly.elems.push({t:'A',w:50,s:26,r:'none',rs:6,rd:'cw'}); renderLook(); reqRender(); };
@@ -337,7 +351,7 @@ function renderAnim(){
     +'<div class="pills">'+[['cw','↻ По часовой'],['ccw','↺ Против']].map(function(d){ return '<button data-rld="'+d[0]+'" class="'+(Ly.rollDir===d[0]?'on':'')+'">'+d[1]+'</button>'; }).join('')+'</div>'
     +rw('lk','rollDur','Секунд на оборот',.5,20,.1,Ly.rollDur);
 
-  if(['shapes','image'].indexOf(Ly.type)>=0){
+  if(['shapes','image','group'].indexOf(Ly.type)>=0){
     h+=h4('Вращение элементов')
       +'<div class="hint">Каждая фигура/плитка крутится вокруг своей оси</div>'
       +'<div class="pills">'+[['none','Нет'],['spin','По кругу'],['swing','Туда-сюда']].map(function(d){ return '<button data-sp="'+d[0]+'" class="'+(Ly.spin===d[0]?'on':'')+'">'+d[1]+'</button>'; }).join('')+'</div>'
@@ -345,7 +359,7 @@ function renderAnim(){
       +rw('lk','spinDur','Секунд на оборот',.5,20,.1,Ly.spinDur);
   }
 
-  if(['symbols','shapes','image'].indexOf(Ly.type)>=0){
+  if(['symbols','shapes','image','group'].indexOf(Ly.type)>=0){
     h+=h4('Хаотичное движение')
       +'<div class="hint">Каждый элемент блуждает по своему случайному пути</div>'
       +rw('lk','chAmp','Сила (разброс)',0,100,1,Ly.chAmp)
@@ -458,21 +472,18 @@ $('bgprevExit').onclick=function(){
   var fr=$('bgpreviewFrame'); fr.srcdoc='';
 };
 
-/* ---------- 14b. Группы элементов ---------- */
-var grpEi=0;
-function openGroupEditor(ei){
-  if(!state||!state.layers[sel]||state.layers[sel].type!=='symbols')return;
+/* ---------- 14b. Сборка фигур (отдельный слой) ---------- */
+function openGroupEditor(){
+  if(!state||!state.layers[sel])return;
   var Ly=state.layers[sel];
-  if(!Ly.elems[ei])return;
-  grpEi=ei;
-  Ly.elems[ei].g=Ly.elems[ei].g||[];
+  Ly.g=Ly.g||JSON.parse(JSON.stringify(GROUPS.butterfly));
   renderGroupParts(); renderGroupPreview();
   $('bgGroupOverlay').classList.remove('hidden');
 }
 function renderGroupPreview(){
   var Ly=state.layers[sel];
   if(!Ly)return;
-  var g=(Ly.elems[grpEi]||{}).g||[];
+  var g=Ly.g||[];
   var box=$('bgGroupPreview');
   if(!box)return;
   if(!g.length){ box.innerHTML='<div class="hint" style="padding:14px;text-align:center;color:#999">Пусто. Добавь овалы, палочки и буквы или возьми пресет.</div>'; return; }
@@ -481,7 +492,7 @@ function renderGroupPreview(){
 function renderGroupParts(){
   var Ly=state.layers[sel];
   if(!Ly)return;
-  var g=(Ly.elems[grpEi]||{}).g||[];
+  var g=Ly.g||[];
   var box=$('bgGroupParts');
   box.innerHTML='';
   if(!g.length){ box.innerHTML='<div class="hint" style="color:#999">Частей нет — добавь ниже.</div>'; return; }
@@ -515,8 +526,8 @@ function closeGroupEditor(){ $('bgGroupOverlay').classList.add('hidden'); }
   var ov=$('bgGroupOverlay');
   ov.querySelectorAll('[data-gadd]').forEach(function(b){
     b.onclick=function(){
-      var Ly=state.layers[sel]; if(!Ly||!Ly.elems[grpEi])return;
-      var g=Ly.elems[grpEi].g||[];
+      var Ly=state.layers[sel]; if(!Ly)return;
+      var g=Ly.g=Ly.g||[];
       var ty=b.dataset.gadd;
       if(ty==='e')g.push({ty:'e',x:50,y:50,rx:20,ry:20,rot:0});
       else if(ty==='r')g.push({ty:'r',x:50,y:50,rx:14,ry:14,rot:0});
@@ -527,8 +538,8 @@ function closeGroupEditor(){ $('bgGroupOverlay').classList.add('hidden'); }
   });
   ov.querySelectorAll('[data-gpreset]').forEach(function(b){
     b.onclick=function(){
-      var Ly=state.layers[sel]; if(!Ly||!Ly.elems[grpEi])return;
-      Ly.elems[grpEi].g=JSON.parse(JSON.stringify(GROUPS[b.dataset.gpreset]||[]));
+      var Ly=state.layers[sel]; if(!Ly)return;
+      Ly.g=JSON.parse(JSON.stringify(GROUPS[b.dataset.gpreset]||[]));
       renderGroupParts(); renderGroupPreview(); reqRender();
     };
   });
