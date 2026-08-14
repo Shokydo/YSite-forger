@@ -2555,81 +2555,221 @@ textarea {
   pointer-events: auto;
 }
 
-/* ---------- Сборки фигур ---------- */
-#bgApp .bgGroup-modal {
-  width: 980px;
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
-}
-
-#bgApp .bgGroup-cols {
-  display: flex;
-  gap: 18px;
+/* ---------- Редактор сборки (окно) ---------- */
+#bgGroupOverlay .gwin {
+  width: min(1080px, 94vw);
+  height: min(680px, 90vh);
+  display: grid;
+  grid-template-rows: auto 1fr;
   overflow: hidden;
-  align-items: stretch;
 }
 
-#bgApp .bgGroup-left {
-  flex: 0 0 55%;
-  min-width: 0;
+#bgGroupOverlay .gwin-body {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  overflow: hidden;
+  min-height: 0;
+}
+
+#bgGroupOverlay .gwin-left {
+  padding: 20px;
   display: flex;
   flex-direction: column;
-}
-
-#bgApp .bgGroup-right {
-  flex: 1;
+  gap: 12px;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
 }
 
-#bgApp .bgGroup-right #bgGroupParts {
-  overflow-y: auto;
-  max-height: 54vh;
-  padding-right: 4px;
-}
-
-#bgApp .grprev-wrap {
-  aspect-ratio: 16 / 9;
-  background: #000;
+#bgGroupOverlay .gwin-prev {
+  aspect-ratio: 1 / 1;
+  background: #0d0d0d;
   border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
+  position: relative;
+  touch-action: none;
 }
 
-#bgApp .grprev-wrap svg {
+#bgGroupOverlay .gwin-prev svg {
   width: 100%;
   height: 100%;
   display: block;
 }
 
-#bgApp .gpart {
-  background: #1c1c1c;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px;
-  margin-bottom: 10px;
+#bgGroupOverlay .gwin-prev-hint {
+  font-size: 12px;
+  color: #999;
 }
 
-#bgApp .gpart-h {
+#bgGroupOverlay .gwin-right {
+  border-left: 1px solid var(--border);
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+#bgGroupOverlay .crow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+  color: #e6e6e6;
+}
+
+#bgGroupOverlay .rr {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
 }
 
-#bgApp .gpart-h b {
-  flex: 1;
+#bgGroupOverlay .gchips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+#bgGroupOverlay .gchip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #1c1c1c;
+  color: var(--text);
+  cursor: pointer;
   font-size: 13px;
+  transition: var(--transition);
 }
 
-#bgApp .gpart-h .gt {
-  width: 150px;
+#bgGroupOverlay .gchip:hover {
+  border-color: var(--border-hover);
+  background: var(--bg-hover);
 }
 
-#bgApp .gpart .row {
-  margin-bottom: 4px;
+#bgGroupOverlay .gchip.active {
+  border-color: #4a9eff;
+  background: rgba(74, 158, 255, 0.15);
+  color: #fff;
+}
+
+#bgGroupOverlay .gchip .gchip-ic {
+  font-size: 14px;
+  line-height: 1;
+}
+
+#bgGroupOverlay .gadd-row .btn,
+#bgGroupOverlay .gpreset-crow .btn {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+#bgGroupOverlay .gpreset-crow {
+  justify-content: flex-start;
+}
+
+#bgGroupOverlay .grow-row {
+  display: grid;
+  grid-template-columns: 70px 1fr 64px;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #e6e6e6;
+  margin-bottom: 10px;
+}
+
+#bgGroupOverlay .grow-row .lbl {
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: #999;
+}
+
+#bgGroupOverlay .grow-row input[type="range"] {
+  width: 100%;
+  accent-color: #4a9eff;
+}
+
+#bgGroupOverlay .grow-row input.num,
+#bgGroupOverlay .grow-row input.txt {
+  width: 100%;
+  background: #1e1e1e;
+  border: 1px solid #666;
+  color: #fff;
+  border-radius: 6px;
+  padding: 5px 6px;
+  font-size: 12px;
+  outline: none;
+}
+
+#bgGroupOverlay .grow-row input.num {
+  justify-self: end;
+}
+
+#bgGroupOverlay select.gt {
+  background: #1e1e1e;
+  border: 1px solid #666;
+  color: #fff;
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 12px;
+  outline: none;
+}
+
+#bgGroupOverlay .gpart-panel {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #141414;
+  padding: 14px;
+}
+
+#bgGroupOverlay .gpart-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+#bgGroupOverlay .gpart-panel-head b {
+  font-size: 14px;
+}
+
+#bgGroupOverlay .gpart-panel-head .gt {
+  width: 130px;
+}
+
+#bgGroupOverlay .gpart-empty {
+  color: #999;
+  font-size: 13px;
+  padding: 20px 0;
+  text-align: center;
+  border: 1px dashed #3a3a3a;
+  border-radius: 12px;
+}
+
+#bgGroupOverlay #bgGroupDone {
+  align-self: flex-end;
+}
+
+@media (max-width: 900px) {
+  #bgGroupOverlay .gwin-body {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    overflow-y: auto;
+  }
+  #bgGroupOverlay .gwin-prev {
+    max-width: 300px;
+    aspect-ratio: 1 / 1;
+    margin: 0 auto;
+  }
+  #bgGroupOverlay .gwin-right {
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
 }
 
 

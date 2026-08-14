@@ -47,6 +47,7 @@ var I={
   dn:'<svg class="ic" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
   rm:'<svg class="ic" viewBox="0 0 16 16"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="2"/></svg>',
   edit:'<svg class="ic" viewBox="0 0 16 16"><path d="M11 2l3 3L6 13H3v-3z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>',
+  dup:'<svg class="ic" viewBox="0 0 16 16"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5" fill="none" stroke="currentColor"/><path d="M2.5 10.5V3.5A1 1 0 0 1 3.5 2.5h7" fill="none" stroke="currentColor"/></svg>',
   bg:'<svg class="ic" viewBox="0 0 16 16"><rect x="1.5" y="1.5" width="13" height="13" rx="3" fill="none" stroke="currentColor"/><path d="M1.5 11c3-2.5 5 2.5 8 0s3.5-3 5-3" stroke="currentColor" fill="none"/></svg>',
   mirror:'<svg class="ic" viewBox="0 0 16 16"><path d="M8 1v14M3 5l-2 3 2 3M13 5l2 3-2 3" stroke="currentColor" fill="none"/></svg>',
   dice:'<svg class="ic" viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="3" fill="none" stroke="currentColor"/><circle cx="6" cy="6" r="1.2" fill="currentColor"/><circle cx="10" cy="10" r="1.2" fill="currentColor"/></svg>',
@@ -243,16 +244,19 @@ var GROUPS={
     {ty:'l',x:36,y:56,rx:5,rot:25,th:3},{ty:'l',x:64,y:56,rx:5,rot:-25,th:3}
   ]
 };
-function groupContent(g,s,color,outline){
+function groupContent(g,s,color,outline,perPart){
   var k=s/100,o='';
   var F=outline?function(a){return 'stroke="'+color+'" fill="none" stroke-width="'+(a.th||2)+'"'}:function(){return 'fill="'+color+'"'};
-  (g||[]).forEach(function(p){
+  (g||[]).forEach(function(p,i){
+    var wrap=perPart?perPart(p,i):null;
+    if(wrap)o+=wrap[0];
     var rr=' transform="translate('+(p.x!=null?p.x:50)+' '+(p.y!=null?p.y:50)+') rotate('+(p.rot||0)+')"';
     var rx=p.rx!=null?p.rx:20,ry=p.ry!=null?p.ry:20;
     if(p.ty==='e')o+='<ellipse'+rr+' rx="'+rx+'" ry="'+ry+'" '+F(p)+'/>';
     else if(p.ty==='r')o+='<rect'+rr+' x="'+(-rx)+'" y="'+(-ry)+'" width="'+(rx*2)+'" height="'+(ry*2)+'" '+F(p)+'/>';
     else if(p.ty==='l')o+='<line'+rr+' x1="'+(-rx)+'" y1="0" x2="'+rx+'" y2="0" stroke="'+color+'" stroke-width="'+(p.th||2)+'"/>';
     else if(p.ty==='t')o+='<text'+rr+' x="0" y="0" font-size="'+(p.fs||20)+'" text-anchor="middle" dominant-baseline="central" '+(outline?'':'fill="'+color+'"')+'>'+esc(p.ch||'A')+'</text>';
+    if(wrap)o+=wrap[1];
   });
   return '<g transform="translate(-50 -50) scale('+k.toFixed(3)+')">'+o+'</g>';
 }

@@ -576,38 +576,39 @@
     </div>
   </div>
 
-  <!-- Модальное окно группы элементов -->
+  <!-- Редактор сборки -->
   <div class="modal-overlay hidden" id="bgGroupOverlay">
-    <div class="modal bgGroup-modal">
+    <div class="modal gwin" id="bgGroupWin">
       <div class="modal-header">
-        <h2>Сборка фигур (слой)</h2>
+        <h2 id="bgGroupTitle">Редактор сборки</h2>
         <button class="btn-close" id="bgGroupClose">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
-      <div class="modal-body bgGroup-cols">
-        <div class="bgGroup-left">
-          <div class="crow"><b>Предпросмотр на текущем фоне</b></div>
-          <div class="grprev-wrap" id="bgGroupPreview"></div>
-          <div class="hint" style="margin-top:8px">Изменения сразу видны здесь и на холсте справа.</div>
+      <div class="gwin-body">
+        <div class="gwin-left">
+          <div class="grprev-wrap gwin-prev" id="bgGroupPreview"></div>
+          <div class="gwin-prev-hint">Клик по части — выбор. Перетаскивание — движение. Стрелки — ±1, Shift — ±5.</div>
         </div>
-        <div class="bgGroup-right">
-          <div class="crow">Пресеты</div>
-          <div class="rr">
-            <button class="btn sm" data-gpreset="butterfly">Бабочка</button>
-            <button class="btn sm" data-gpreset="flower">Цветок</button>
-            <button class="btn sm" data-gpreset="rocket">Ракета</button>
-            <button class="btn sm" data-gpreset="smile">Смайл</button>
+        <div class="gwin-right">
+          <div class="crow"><b>Части</b></div>
+          <div class="gchips" id="bgGroupPartsBar"></div>
+          <div class="rr gadd-row">
+            <button class="btn sm" data-gadd="e" title="Добавить овал">+ Овал</button>
+            <button class="btn sm" data-gadd="r" title="Добавить прямоугольник">+ Прямоуг.</button>
+            <button class="btn sm" data-gadd="l" title="Добавить палочку">+ Палочка</button>
+            <button class="btn sm" data-gadd="t" title="Добавить букву">+ Буква</button>
           </div>
-          <div class="crow">Добавить часть</div>
-          <div class="rr">
-            <button class="btn sm" data-gadd="e">Овал</button>
-            <button class="btn sm" data-gadd="r">Прямоугольник</button>
-            <button class="btn sm" data-gadd="l">Палочка</button>
-            <button class="btn sm" data-gadd="t">Буква</button>
+          <div class="crow gpreset-crow"><b>Пресеты</b>
+            <span class="rr">
+              <button class="btn sm" data-gpreset="butterfly" title="Бабочка">🦋</button>
+              <button class="btn sm" data-gpreset="flower" title="Цветок">🌸</button>
+              <button class="btn sm" data-gpreset="rocket" title="Ракета">🚀</button>
+              <button class="btn sm" data-gpreset="smile" title="Смайл">😊</button>
+            </span>
           </div>
-          <div class="crow">Части</div>
-          <div id="bgGroupParts"></div>
+          <div id="bgGroupPanel"></div>
+          <button class="btn btn-primary" id="bgGroupDone">Готово</button>
         </div>
       </div>
     </div>
