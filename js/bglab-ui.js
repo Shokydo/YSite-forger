@@ -180,9 +180,9 @@ function renderLook(){
   if(Ly.type==='symbols'){
     h+=h4('Элементы, размер, вес')+'<div class="hint">Элемент — целиком (строка/emoji). Размер и вращение — свои у каждого. % = частота</div>';
     (Ly.elems||[]).forEach(function(e,ei){
-      h+='<div class="row"><div class="rr"><input class="txt" data-elt="'+ei+'" value="'+esc(e.t)+'" style="flex:1"><input class="num" data-els="'+ei+'" min="8" max="120" value="'+(e.s!=null?e.s:(Ly.fs||26))+'"><button class="btn sm" data-elr="'+ei+'">'+I.rm+'</button></div><div class="rr"><input type="range" data-elw="'+ei+'" min="0" max="100" value="'+e.w+'"><span class="wpct" style="width:44px;text-align:right">'+e.w+'%</span></div><div class="rr"><span class="hint" style="width:52px">Вращ.</span><select data-elrm="'+ei+'" style="flex:1"><option value="none"'+(e.r==='none'||!e.r?' selected':'')+'>Нет</option><option value="spin"'+(e.r==='spin'?' selected':'')+'>По кругу</option><option value="swing"'+(e.r==='swing'?' selected':'')+'>Туда-сюда</option></select><select data-elrd="'+ei+'" style="width:60px" title="Направление вращения"><option value="cw"'+(e.rd!=='ccw'?' selected':'')+'>↻</option><option value="ccw"'+(e.rd==='ccw'?' selected':'')+'>↺</option></select><input class="num" data-elrs="'+ei+'" style="width:58px" min="0.5" max="20" step="0.1" value="'+(e.rs!=null?e.rs:6)+'" title="сек/оборот"></div></div>';
+      h+='<div class="row"><div class="rr"><input class="txt" data-elt="'+ei+'" value="'+esc(e.t)+'" style="flex:1"><input class="num" data-els="'+ei+'" min="8" max="120" value="'+(e.s!=null?e.s:(Ly.fs||26))+'"><select data-elm="'+ei+'" style="width:88px" title="Тип элемента"><option value="std"'+(e.mode!=='grp'?' selected':'')+'>Символ</option><option value="grp"'+(e.mode==='grp'?' selected':'')+'>Сборка</option></select><button class="btn sm" data-elg="'+ei+'" title="Редактировать сборку"'+(e.mode==='grp'?'':' style="display:none"')+'>'+I.grp+'</button><button class="btn sm" data-elr="'+ei+'">'+I.rm+'</button></div><div class="rr"><input type="range" data-elw="'+ei+'" min="0" max="100" value="'+e.w+'"><span class="wpct" style="width:44px;text-align:right">'+e.w+'%</span></div><div class="rr"><span class="hint" style="width:52px">Вращ.</span><select data-elrm="'+ei+'" style="flex:1"><option value="none"'+(e.r==='none'||!e.r?' selected':'')+'>Нет</option><option value="spin"'+(e.r==='spin'?' selected':'')+'>По кругу</option><option value="swing"'+(e.r==='swing'?' selected':'')+'>Туда-сюда</option></select><select data-elrd="'+ei+'" style="width:60px" title="Направление вращения"><option value="cw"'+(e.rd!=='ccw'?' selected':'')+'>↻</option><option value="ccw"'+(e.rd==='ccw'?' selected':'')+'>↺</option></select><input class="num" data-elrs="'+ei+'" style="width:58px" min="0.5" max="20" step="0.1" value="'+(e.rs!=null?e.rs:6)+'" title="сек/оборот"></div></div>';
     });
-    h+='<button class="btn sm" id="addEl">+ элемент</button>'
+    h+='<div class="rr"><button class="btn sm" id="addEl">+ символ</button><button class="btn sm" id="addElGrp">+ сборка</button></div>'
       +ck('lk','random','Случайное положение',Ly.random);
     if(Ly.random)h+=rw('lk','count','Количество',1,300,1,Ly.count)+rw('lk','chaos','Хаос положения',0,100,1,Ly.chaos);
     h+=ck('lk','colorMode','Цвет слоя',Ly.colorMode)
@@ -274,8 +274,20 @@ function renderLook(){
   lookEl.querySelectorAll('[data-elr]').forEach(function(b){
     b.onclick=function(){ Ly.elems.splice(+b.dataset.elr,1); renderLook(); reqRender(); };
   });
+  lookEl.querySelectorAll('[data-elm]').forEach(function(inp){
+    inp.addEventListener('change',function(){
+      var e=Ly.elems[+inp.dataset.elm]; e.mode=inp.value;
+      if(e.mode==='grp'&&!e.g)e.g=JSON.parse(JSON.stringify(GROUPS.butterfly));
+      renderLook(); reqRender();
+    });
+  });
+  lookEl.querySelectorAll('[data-elg]').forEach(function(b){
+    b.onclick=function(){ openGroupEditor(+b.dataset.elg); };
+  });
   var ae=lookEl.querySelector('#addEl');
-  if(ae)ae.onclick=function(){ Ly.elems.push({t:'A',w:50,s:26,r:'none',rs:6,rd:'cw'}); renderLook(); reqRender(); };
+  if(ae)ae.onclick=function(){ Ly.elems.push({t:'A',w:50,s:26,r:'none',rs:6,rd:'cw',mode:'std'}); renderLook(); reqRender(); };
+  var ag=lookEl.querySelector('#addElGrp');
+  if(ag)ag.onclick=function(){ Ly.elems.push({t:'A',w:50,s:40,r:'none',rs:6,rd:'cw',mode:'grp',g:JSON.parse(JSON.stringify(GROUPS.butterfly))}); renderLook(); reqRender(); };
 
   lookEl.querySelectorAll('[data-ex]').forEach(function(inp){
     inp.addEventListener('change',function(){
@@ -472,36 +484,54 @@ $('bgprevExit').onclick=function(){
   var fr=$('bgpreviewFrame'); fr.srcdoc='';
 };
 
-/* ---------- 14b. Сборка фигур (отдельный слой) ---------- */
-function openGroupEditor(){
+/* ---------- 14b. Редактор сборки (элемент символов или слой) ---------- */
+var grpCtx={kind:'layer'};
+function grpHost(){
+  if(!state||!state.layers[sel])return null;
+  if(grpCtx&&grpCtx.kind==='el'){
+    var Ly=state.layers[sel];
+    if(Ly.type!=='symbols'||!Ly.elems||!Ly.elems[grpCtx.ei])return null;
+    return Ly.elems[grpCtx.ei];
+  }
+  return state.layers[sel];
+}
+function openGroupEditor(ei){
   if(!state||!state.layers[sel])return;
-  var Ly=state.layers[sel];
-  Ly.g=Ly.g||JSON.parse(JSON.stringify(GROUPS.butterfly));
+  grpCtx=ei!=null?{kind:'el',ei:ei}:{kind:'layer'};
+  var host=grpHost();
+  if(!host)return;
+  if(!host.g)host.g=JSON.parse(JSON.stringify(GROUPS.butterfly));
   renderGroupParts(); renderGroupPreview();
   $('bgGroupOverlay').classList.remove('hidden');
 }
 function renderGroupPreview(){
-  var Ly=state.layers[sel];
-  if(!Ly)return;
-  var g=Ly.g||[];
-  var box=$('bgGroupPreview');
-  if(!box)return;
-  if(!g.length){ box.innerHTML='<div class="hint" style="padding:14px;text-align:center;color:#999">Пусто. Добавь овалы, палочки и буквы или возьми пресет.</div>'; return; }
-  box.innerHTML='<svg viewBox="0 0 100 100" class="grprev">'+groupContent(g,100,Ly.color||'#eee')+'</svg>';
+  var host=grpHost(), box=$('bgGroupPreview');
+  if(!host||!box)return;
+  if(!(host.g||[]).length){ box.innerHTML='<div class="hint" style="padding:14px;text-align:center;color:#999">Пусто. Добавь части или возьми пресет.</div>'; return; }
+  try{
+    var st=JSON.parse(JSON.stringify(state));
+    show(box,st,'g');
+  }catch(e){ box.innerHTML='<div class="hint" style="padding:14px;text-align:center;color:#999">Ошибка превью</div>'; }
+}
+function grow(f,lb,val,min,max,st){
+  return '<label class="row"><span class="lbl">'+lb+'</span><div class="rr"><input type="range" data-gf="'+f+'" min="'+min+'" max="'+max+'" step="'+(st||1)+'" value="'+val+'"><input class="num" type="number" data-gf="'+f+'" min="'+min+'" max="'+max+'" step="'+(st||1)+'" value="'+val+'"></div></label>';
 }
 function renderGroupParts(){
-  var Ly=state.layers[sel];
-  if(!Ly)return;
-  var g=Ly.g||[];
-  var box=$('bgGroupParts');
+  var host=grpHost(), box=$('bgGroupParts');
+  if(!host||!box)return;
+  var g=host.g||[];
   box.innerHTML='';
   if(!g.length){ box.innerHTML='<div class="hint" style="color:#999">Частей нет — добавь ниже.</div>'; return; }
   g.forEach(function(p,i){
     var card=document.createElement('div'); card.className='gpart';
-    var tp='<div class="crow"><b>Часть '+(i+1)+'</b><select class="gt" style="flex:1;margin-left:auto;max-width:170px"><option value="e"'+(p.ty==='e'?' selected':'')+'>Овал</option><option value="r"'+(p.ty==='r'?' selected':'')+'>Прямоугольник</option><option value="l"'+(p.ty==='l'?' selected':'')+'>Палочка</option><option value="t"'+(p.ty==='t'?' selected':'')+'>Буква</option></select></div>';
-    var nums='<div class="rr">'+gnum('x','X',p.x,0,100)+gnum('y','Y',p.y,0,100)+gnum('rx','Ш',p.rx,1,60)+gnum('ry','В',p.ry,1,60)+gnum('rot','Угол',p.rot,-180,180)+'</div>';
-    var extra=p.ty==='t'?'<div class="rr"><span class="gnum"><i>Буква</i><input class="txt" data-gf="ch" maxlength="3" style="width:74px" value="'+esc(p.ch||'A')+'"></span>'+gnum('fs','Размер',p.fs,6,80)+'</div>':'';
-    card.innerHTML=tp+nums+extra+'<button class="btn sm" data-gdel="'+i+'" style="margin-top:6px">'+I.rm+'</button>';
+    var tp='<div class="gpart-h"><b>Часть '+(i+1)+'</b><select class="gt"><option value="e"'+(p.ty==='e'?' selected':'')+'>Овал</option><option value="r"'+(p.ty==='r'?' selected':'')+'>Прямоугольник</option><option value="l"'+(p.ty==='l'?' selected':'')+'>Палочка</option><option value="t"'+(p.ty==='t'?' selected':'')+'>Буква</option></select><button class="btn sm" data-gdel="'+i+'">'+I.rm+'</button></div>';
+    var rows=p.ty==='t'?'<label class="row"><span class="lbl">Буква</span><div class="rr" style="flex:1"><input class="txt" data-gf="ch" maxlength="3" value="'+esc(p.ch||'A')+'"></div></label>'+grow('fs','Размер',p.fs,6,80):'';
+    rows+=grow('x','X',p.x,0,100)
+      +grow('y','Y',p.y,0,100)
+      +grow('rx','Ширина',p.rx,1,60)
+      +grow('ry','Высота',p.ry,1,60)
+      +grow('rot','Поворот',p.rot,-180,180);
+    card.innerHTML=tp+rows;
     card.querySelector('.gt').onchange=function(){
       p.ty=card.querySelector('.gt').value;
       if(p.ty==='t'&&p.ch==null)p.ch='A';
@@ -518,16 +548,13 @@ function renderGroupParts(){
     box.appendChild(card);
   });
 }
-function gnum(f,lb,val,min,max){
-  return '<span class="gnum"><i>'+lb+'</i><input class="num" data-gf="'+f+'" min="'+min+'" max="'+max+'" value="'+val+'"></span>';
-}
 function closeGroupEditor(){ $('bgGroupOverlay').classList.add('hidden'); }
 (function(){
   var ov=$('bgGroupOverlay');
   ov.querySelectorAll('[data-gadd]').forEach(function(b){
     b.onclick=function(){
-      var Ly=state.layers[sel]; if(!Ly)return;
-      var g=Ly.g=Ly.g||[];
+      var host=grpHost(); if(!host)return;
+      var g=host.g=host.g||[];
       var ty=b.dataset.gadd;
       if(ty==='e')g.push({ty:'e',x:50,y:50,rx:20,ry:20,rot:0});
       else if(ty==='r')g.push({ty:'r',x:50,y:50,rx:14,ry:14,rot:0});
@@ -538,8 +565,8 @@ function closeGroupEditor(){ $('bgGroupOverlay').classList.add('hidden'); }
   });
   ov.querySelectorAll('[data-gpreset]').forEach(function(b){
     b.onclick=function(){
-      var Ly=state.layers[sel]; if(!Ly)return;
-      Ly.g=JSON.parse(JSON.stringify(GROUPS[b.dataset.gpreset]||[]));
+      var host=grpHost(); if(!host)return;
+      host.g=JSON.parse(JSON.stringify(GROUPS[b.dataset.gpreset]||[]));
       renderGroupParts(); renderGroupPreview(); reqRender();
     };
   });

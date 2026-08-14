@@ -249,6 +249,7 @@ function groupContent(g,s,color,outline){
 }
 function elemMarkup(e,Ly,color){
   var sz=Math.max(4,(e.s!=null?e.s:(Ly.fs||26))).toFixed(1);
+  if(e.mode==='grp'&&e.g&&e.g.length)return groupContent(e.g,parseFloat(sz),color);
   return '<text x="0" y="0" font-size="'+sz+'">'+esc(e.t)+'</text>';
 }
 function genSymbols(Ly,color,isGlow,g,gT,drift,chp){
