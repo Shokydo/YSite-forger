@@ -46,6 +46,7 @@ var I={
   up:'<svg class="ic" viewBox="0 0 16 16"><path d="M4 10l4-4 4 4" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
   dn:'<svg class="ic" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
   rm:'<svg class="ic" viewBox="0 0 16 16"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="2"/></svg>',
+  edit:'<svg class="ic" viewBox="0 0 16 16"><path d="M11 2l3 3L6 13H3v-3z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>',
   bg:'<svg class="ic" viewBox="0 0 16 16"><rect x="1.5" y="1.5" width="13" height="13" rx="3" fill="none" stroke="currentColor"/><path d="M1.5 11c3-2.5 5 2.5 8 0s3.5-3 5-3" stroke="currentColor" fill="none"/></svg>',
   mirror:'<svg class="ic" viewBox="0 0 16 16"><path d="M8 1v14M3 5l-2 3 2 3M13 5l2 3-2 3" stroke="currentColor" fill="none"/></svg>',
   dice:'<svg class="ic" viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="3" fill="none" stroke="currentColor"/><circle cx="6" cy="6" r="1.2" fill="currentColor"/><circle cx="10" cy="10" r="1.2" fill="currentColor"/></svg>',

@@ -6,6 +6,12 @@
 
 /* ---------- 8. Состояние и навигация ---------- */
 var state=null, sel=0, bgSel=0, raf=0, lastShow=0;
+var bgEditId=null;
+function setSaveLabel(){
+  var lb=$('bgsaveLabel'); if(!lb)return;
+  lb.textContent=bgEditId?'Сохранить изменения':'Сохранить фон';
+  var btn=$('bgsaveBtn'); if(btn)btn.title=bgEditId?'Обновить текущий фон':'Создать новый фон';
+}
 var stage=$('bgstage'), listEl=$('bglayers'), lookEl=$('bglookCtrls'), animEl=$('bganimCtrls'),
     lookTitle=$('bglookTitle'), animSec=$('bganimSec'), cardsEl=$('bgcards');
 
@@ -19,11 +25,13 @@ function openEditor(p){
 $('bgcreateBtn').onclick=function(){ openEditor({name:'Свой фон', st:function(){ return S({layers:[L('grid',{})]}); }}); };
 $('bgback').onclick=function(){
   // «← Назад» на главной BG·LAB — возврат на главный экран конструктора
+  bgEditId=null; setSaveLabel();
   if (window.AppController) { AppController.goHome(); }
   else { $('bgedit').classList.add('hidden'); $('bghome').classList.remove('hidden'); renderBGSaved(); }
 };
 $('bgback2').onclick=function(){
   // «←» в редакторе — возврат на главную BG·LAB
+  bgEditId=null; setSaveLabel();
   $('bgedit').classList.add('hidden'); $('bghome').classList.remove('hidden'); renderBGSaved();
 };
 
@@ -586,9 +594,13 @@ function renderBGSaved(){
   box.innerHTML='';
   all.forEach(function(b){
     var c=document.createElement('div'); c.className='bgsaved-card';
-    c.innerHTML='<div class="prev"></div><div class="bar"><b>'+esc(b.name)+'</b><span class="actions"><button data-a="del" title="Удалить">'+I.rm+'</button></span></div>';
+    c.innerHTML='<div class="prev"></div><div class="bar"><b>'+esc(b.name)+'</b><span class="actions"><button data-a="edit" title="Редактировать">'+I.edit+'</button><button data-a="del" title="Удалить">'+I.rm+'</button></span></div>';
     try{ show(c.querySelector('.prev'), b.state, 's'+b.id.replace(/[^a-zA-Z0-9]/g,'')); }catch(e){}
     c.querySelector('.prev').onclick=function(){ openSavedInEditor(b); };
+    c.querySelector('[data-a="edit"]').onclick=function(e){
+      e.stopPropagation();
+      openSavedInEditor(b);
+    };
     var del=c.querySelector('[data-a="del"]');
     del.onclick=function(e){
       e.stopPropagation();
@@ -603,17 +615,30 @@ function renderBGSaved(){
 function openSavedInEditor(b){
   state=JSON.parse(JSON.stringify(b.state));
   sel=0; bgSel=0;
+  bgEditId=b.id;
   $('bghome').classList.add('hidden');
   $('bgedit').classList.remove('hidden');
   $('bgedTitle').textContent='Редактор — '+b.name;
+  setSaveLabel();
   refresh();
 }
 $('bgsaveBtn').onclick=function(){
   if(!state){ toast('Сначала создайте фон'); return; }
+  if(bgEditId){
+    if(!BackgroundsLib.get(bgEditId)){ bgEditId=null; setSaveLabel(); }
+    else{
+      BackgroundsLib.update(bgEditId, state);
+      renderBGSaved();
+      toast('Изменения сохранены ✓');
+      return;
+    }
+  }
   var all=BackgroundsLib.getAll();
   var name=prompt('Имя фона:', 'Фон '+(all.length+1));
   if(name&&name.trim()){
-    BackgroundsLib.save(JSON.parse(JSON.stringify(state)), name.trim());
+    var item=BackgroundsLib.save(JSON.parse(JSON.stringify(state)), name.trim());
+    bgEditId=item.id;
+    setSaveLabel();
     renderBGSaved();
     toast('Фон сохранён ✓');
   }

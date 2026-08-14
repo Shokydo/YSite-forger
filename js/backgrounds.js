@@ -48,6 +48,18 @@ const BackgroundsLib = {
     }
   },
 
+  /* Обновить состояние уже сохранённого фона (in-place) */
+  update(id, state) {
+    const all = this.getAll();
+    const b = all.find(x => String(x.id) === String(id));
+    if (b) {
+      b.state = JSON.parse(JSON.stringify(state));
+      this._persist(all);
+      return b;
+    }
+    return null;
+  },
+
   _persist(all) {
     try {
       localStorage.setItem(this._key, JSON.stringify(all));

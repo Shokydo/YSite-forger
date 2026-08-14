@@ -74,6 +74,7 @@ const AppController = {
         <div class="bar"><b>${this._esc(b.name)}</b><span>${new Date(b.createdAt).toLocaleDateString('ru-RU')}</span></div>
         <div class="actions">
           <button data-a="apply" title="Применить к странице">Применить</button>
+          <button data-a="edit" title="Редактировать в BG·LAB">Редактировать</button>
           <button data-a="del" title="Удалить">✕</button>
         </div>
       </div>
@@ -88,6 +89,13 @@ const AppController = {
       }
       card.querySelector('.prev').addEventListener('click', () => this.applyBg(id));
       card.querySelector('[data-a="apply"]').addEventListener('click', (e) => { e.stopPropagation(); this.applyBg(id); });
+      card.querySelector('[data-a="edit"]').addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (window.openSavedInEditor) {
+          if (window.AppController) window.AppController.openBgLab();
+          window.openSavedInEditor(b);
+        }
+      });
       card.querySelector('[data-a="del"]').addEventListener('click', (e) => {
         e.stopPropagation();
         const bg = BackgroundsLib.get(id);
