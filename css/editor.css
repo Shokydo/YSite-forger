@@ -2052,6 +2052,56 @@ textarea {
   gap: 12px;
 }
 
+#bgApp #bgpropsPrev {
+  flex: none;
+  height: 150px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #3d3d3d;
+  background: #000;
+  position: relative;
+}
+
+#bgApp #bgpropsPrev svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#bgApp #bgpropsPrev .pp-tag {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  z-index: 2;
+  background: rgba(0, 0, 0, 0.65);
+  border: 1px solid #3a3a3a;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 2px 9px;
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+#bgApp .erow {
+  border: 1px solid #3a3a3a;
+  border-radius: 12px;
+  padding: 10px;
+  background: #121212;
+  gap: 8px;
+}
+
+#bgApp .erow .eprev {
+  width: 46px;
+  height: 46px;
+  flex: none;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid #333;
+  border-radius: 8px;
+}
+
 #bgApp section {
   background: #161616;
   border: 1px solid #3d3d3d;
