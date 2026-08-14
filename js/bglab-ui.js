@@ -46,24 +46,50 @@ function reqRender(){
 }
 function refresh(){ renderList(); renderLook(); renderAnim(); reqRender(); }
 
-/* карточки пресетов на главной */
+/* карточки пресетов на главной — бесконечная лента */
+var trackEl=document.createElement('div'); trackEl.id='bgcardsTrack'; cardsEl.appendChild(trackEl);
+function buildCard(p,uid){
+  var c=document.createElement('div'); c.className='card';
+  c.innerHTML='<div class="prev"></div><div class="bar"><b>'+p.name+'</b><span>Открыть →</span></div>';
+  try{ show(c.querySelector('.prev'), p.st(), uid); }catch(e){ console.error('preset fail:', p.name, e); }
+  c.onclick=function(){ openEditor(p); };
+  return c;
+}
+var copyA=document.createElement('div'), copyB=document.createElement('div');
+copyA.className='bgcards-copy'; copyB.className='bgcards-copy';
 PRESETS.forEach(function(p,i){
-  try{
-    var c=document.createElement('div'); c.className='card';
-    c.innerHTML='<div class="prev"></div><div class="bar"><b>'+p.name+'</b><span>Открыть →</span></div>';
-    show(c.querySelector('.prev'), p.st(), 'c'+i);
-    c.onclick=function(){ openEditor(p); };
-    cardsEl.appendChild(c);
-  }catch(e){ console.error('preset fail:', p.name, e); }
+  copyA.appendChild(buildCard(p,'cA'+i));
+  copyB.appendChild(buildCard(p,'cB'+i));
 });
+trackEl.appendChild(copyA); trackEl.appendChild(copyB);
 
-/* однострочная галерея: прокрутка колесом мыши */
+/* движок ленты: авто-прокрутка + колесо, бесконечный цикл */
+var autoPlay=true, pos=0, speed=0.45;
+cardsEl.addEventListener('mouseenter', function(){ autoPlay=false; });
+cardsEl.addEventListener('mouseleave', function(){ autoPlay=true; });
 cardsEl.addEventListener('wheel', function(e){
   if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){
     e.preventDefault();
-    cardsEl.scrollLeft+=e.deltaY;
+    autoPlay=false;
+    pos-=e.deltaY;
+    wrapPos();
+    trackEl.style.transform='translate3d('+pos+'px,0,0)';
   }
 },{passive:false});
+function wrapPos(){
+  var w=copyA.offsetWidth; if(!w)return;
+  while(pos<=-w)pos+=w;
+  while(pos>0)pos-=w;
+}
+function marquee(){
+  var vw=$('view-bglab'), vh=$('bghome');
+  var vis=!vw.classList.contains('hidden')&&!vh.classList.contains('hidden');
+  if(vis&&autoPlay)pos-=speed;
+  wrapPos();
+  trackEl.style.transform='translate3d('+pos+'px,0,0)';
+  requestAnimationFrame(marquee);
+}
+if(PRESETS.length){ marquee(); }
 
 /* ---------- 9. Список слоёв ---------- */
 function renderList(){

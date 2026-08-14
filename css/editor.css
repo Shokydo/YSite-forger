@@ -1910,30 +1910,24 @@ textarea {
 }
 
 #bgApp #bgcards {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 16px;
+  display: block;
+  overflow: hidden;
   padding: 8px 40px 24px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-behavior: smooth;
   max-width: 1500px;
   margin: 0 auto;
-  scrollbar-width: thin;
-  scrollbar-color: #4a4a4a transparent;
+  cursor: grab;
 }
 
-#bgApp #bgcards::-webkit-scrollbar {
-  height: 8px;
+#bgApp #bgcardsTrack {
+  display: flex;
+  will-change: transform;
 }
 
-#bgApp #bgcards::-webkit-scrollbar-thumb {
-  background: #4a4a4a;
-  border-radius: 8px;
-}
-
-#bgApp #bgcards::-webkit-scrollbar-track {
-  background: transparent;
+#bgApp .bgcards-copy {
+  display: flex;
+  gap: 16px;
+  margin-right: 16px;
+  flex: 0 0 auto;
 }
 
 #bgApp .card {
