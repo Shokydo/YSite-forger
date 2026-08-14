@@ -2093,15 +2093,6 @@ textarea {
   gap: 8px;
 }
 
-#bgApp .erow .eprev {
-  width: 46px;
-  height: 46px;
-  flex: none;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid #333;
-  border-radius: 8px;
-}
-
 #bgApp section {
   background: #161616;
   border: 1px solid #3d3d3d;

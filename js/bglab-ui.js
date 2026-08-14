@@ -129,18 +129,6 @@ function ck(a,k,l,v){ return '<div class="crow check">'+l+' <label class="sw"><i
 function h4(t){ return '<h4>'+t+'</h4>'; }
 function rw(a,k,l,mn,mx,st,v){ return '<label class="row"><span class="lbl">'+l+'</span><div class="rr"><input type="range" data-'+a+'="'+k+'" min="'+mn+'" max="'+mx+'" step="'+st+'" value="'+v+'"><input class="num" type="number" data-'+a+'n="'+k+'" min="'+mn+'" max="'+mx+'" step="'+st+'" value="'+v+'"></div></label>'; }
 
-/* мини-превью одного элемента (символ или сборка) для панели настроек */
-function elPrevSVG(e,Ly){
-  var color=Ly.colorMode?Ly.color:'#fff';
-  if(e.mode==='grp'&&e.g&&e.g.length){
-    var s=Math.max(4,e.s!=null?e.s:(Ly.fs||26));
-    var k=s/100,pad=k*72;
-    return '<svg class="eprev" viewBox="'+(-pad)+' '+(-pad)+' '+(pad*2)+' '+(pad*2)+'" preserveAspectRatio="xMidYMid meet">'+groupContent(e.g,s,color,Ly.outline)+'</svg>';
-  }
-  var sz=(e.s!=null?e.s:(Ly.fs||26)),pad=Math.max(sz*0.85,22);
-  return '<svg class="eprev" viewBox="'+(-pad)+' '+(-pad)+' '+(pad*2)+' '+(pad*2)+'" preserveAspectRatio="xMidYMid meet"><g font-family="monospace" font-size="'+sz+'" text-anchor="middle" '+(Ly.colorMode?'fill="'+color+'"':'')+'>'+elemMarkup(e,Ly,color)+'</g></svg>';
-}
-
 /* превью выбранного слоя в правой панели */
 function renderPropsPrev(){
   var pv=$('bgpropsPrev'); if(!pv)return;
@@ -247,13 +235,14 @@ function renderLook(){
   if(Ly.type==='symbols'){
     h+=h4('Элементы, размер, вес')+'<div class="hint">Элемент — целиком (строка/emoji). Размер и вращение — свои у каждого. % = частота</div>';
     (Ly.elems||[]).forEach(function(e,ei){
+      var isGrp=e.mode==='grp';
       h+='<div class="row erow">'
         +'<div class="rr" style="justify-content:space-between">'
         +'<b style="opacity:.7;font-size:12px">#'+(ei+1)+'</b>'
-        +'<select data-elm="'+ei+'" style="width:110px" title="Тип элемента"><option value="std"'+(e.mode!=='grp'?' selected':'')+'>Символ</option><option value="grp"'+(e.mode==='grp'?' selected':'')+'>Сборка</option></select>'
-        +'<span style="display:flex;gap:6px"><button class="btn sm" data-elg="'+ei+'" title="Редактировать сборку"'+(e.mode==='grp'?'':' style="display:none"')+'>'+I.grp+' Настройка</button><button class="btn sm" data-elr="'+ei+'" title="Удалить">'+I.rm+'</button></span>'
+        +'<select data-elm="'+ei+'" style="width:110px" title="Тип элемента"><option value="std"'+(isGrp?'':' selected')+'>Символ</option><option value="grp"'+(isGrp?' selected':'')+'>Сборка</option></select>'
+        +'<span style="display:flex;gap:6px"><button class="btn sm" data-elg="'+ei+'" title="Редактировать сборку"'+(isGrp?'':' style="display:none"')+'>'+I.grp+' Настройка</button><button class="btn sm" data-elr="'+ei+'" title="Удалить">'+I.rm+'</button></span>'
         +'</div>'
-        +'<div class="rr">'+elPrevSVG(e,Ly)+'<div style="flex:1;display:flex;flex-direction:column;gap:6px"><input class="txt" data-elt="'+ei+'" value="'+esc(e.t)+'" title="Символ/текст"><input class="num" data-els="'+ei+'" min="8" max="120" value="'+(e.s!=null?e.s:(Ly.fs||26))+'" title="Размер"></div></div>'
+        +(isGrp?'':'<div class="rr"><input class="txt" data-elt="'+ei+'" value="'+esc(e.t)+'" style="flex:1" title="Символ/текст"><input class="num" data-els="'+ei+'" min="8" max="120" value="'+(e.s!=null?e.s:(Ly.fs||26))+'" title="Размер"></div>')
         +'<div class="rr"><input type="range" data-elw="'+ei+'" min="0" max="100" value="'+e.w+'"><span class="wpct" style="width:44px;text-align:right">'+e.w+'%</span></div>'
         +'<div class="rr"><span class="hint" style="width:52px">Вращ.</span><select data-elrm="'+ei+'" style="flex:1"><option value="none"'+(e.r==='none'||!e.r?' selected':'')+'>Нет</option><option value="spin"'+(e.r==='spin'?' selected':'')+'>По кругу</option><option value="swing"'+(e.r==='swing'?' selected':'')+'>Туда-сюда</option></select><select data-elrd="'+ei+'" style="width:60px" title="Направление вращения"><option value="cw"'+(e.rd!=='ccw'?' selected':'')+'>↻</option><option value="ccw"'+(e.rd==='ccw'?' selected':'')+'>↺</option></select><input class="num" data-elrs="'+ei+'" style="width:58px" min="0.5" max="20" step="0.1" value="'+(e.rs!=null?e.rs:6)+'" title="сек/оборот"></div></div>';
     });
