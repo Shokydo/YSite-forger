@@ -246,7 +246,7 @@ function renderLook(){
   var Ly=state.layers[sel];
   if(!Ly){ lookEl.innerHTML='<div class="crow" style="color:#999">Нет слоёв</div>'; return; }
   lookTitle.textContent='Слой · вид — '+NAMES[Ly.type]+' '+(sel+1);
-  var h='';
+  var h='<button class="btn sm" id="helpOpen" style="width:100%;margin-bottom:10px">'+I.info+' Что делает слой — примеры</button>';
 
   /* картинка */
   if(Ly.type==='image'){
@@ -291,20 +291,22 @@ function renderLook(){
 
   /* символы */
   if(Ly.type==='symbols'){
-    h+=h4('Элементы, размер, вес')+'<div class="hint">Элемент — целиком (строка/emoji). Размер и вращение — свои у каждого. % = частота</div>';
+    h+=h4('Элементы, размер, вес')+'<div class="hint">Элемент — целиком (строка/emoji). Размер и вращение — свои у каждого. % = частота. Сборка фигур — отдельный слой.</div>';
     (Ly.elems||[]).forEach(function(e,ei){
       var isGrp=e.mode==='grp';
       h+='<div class="row erow">'
         +'<div class="rr" style="justify-content:space-between">'
         +'<b style="opacity:.7;font-size:12px">#'+(ei+1)+'</b>'
-        +'<select data-elm="'+ei+'" style="width:110px" title="Тип элемента"><option value="std"'+(isGrp?'':' selected')+'>Символ</option><option value="grp"'+(isGrp?' selected':'')+'>Сборка</option></select>'
-        +'<span style="display:flex;gap:6px"><button class="btn sm" data-elg="'+ei+'" title="Редактировать сборку"'+(isGrp?'':' style="display:none"')+'>'+I.grp+' Настройка</button><button class="btn sm" data-elr="'+ei+'" title="Удалить">'+I.rm+'</button></span>'
+        +(isGrp?'<span class="pp-tag" style="font-size:11px">'+I.grp+' Сборка</span>':'')
+        +'<span style="display:flex;gap:6px">'
+        +(isGrp?'<button class="btn sm" data-elg="'+ei+'" title="Редактировать сборку">'+I.grp+' Настройка</button>':'')
+        +'<button class="btn sm" data-elr="'+ei+'" title="Удалить">'+I.rm+'</button></span>'
         +'</div>'
         +(isGrp?'':'<div class="rr"><input class="txt" data-elt="'+ei+'" value="'+esc(e.t)+'" style="flex:1" title="Символ/текст"><input class="num" data-els="'+ei+'" min="8" max="120" value="'+(e.s!=null?e.s:(Ly.fs||26))+'" title="Размер"></div>')
         +'<div class="rr"><input type="range" data-elw="'+ei+'" min="0" max="100" value="'+e.w+'"><span class="wpct" style="width:44px;text-align:right">'+e.w+'%</span></div>'
         +'<div class="rr"><span class="hint" style="width:52px">Вращ.</span><select data-elrm="'+ei+'" style="flex:1"><option value="none"'+(e.r==='none'||!e.r?' selected':'')+'>Нет</option><option value="spin"'+(e.r==='spin'?' selected':'')+'>По кругу</option><option value="swing"'+(e.r==='swing'?' selected':'')+'>Туда-сюда</option></select><select data-elrd="'+ei+'" style="width:60px" title="Направление вращения"><option value="cw"'+(e.rd!=='ccw'?' selected':'')+'>↻</option><option value="ccw"'+(e.rd==='ccw'?' selected':'')+'>↺</option></select><input class="num" data-elrs="'+ei+'" style="width:58px" min="0.5" max="20" step="0.1" value="'+(e.rs!=null?e.rs:6)+'" title="сек/оборот"></div></div>';
     });
-    h+='<div class="rr"><button class="btn sm" id="addEl">+ символ</button><button class="btn sm" id="addElGrp">+ сборка</button></div>'
+    h+='<div class="rr"><button class="btn sm" id="addEl">+ символ</button></div>'
       +ck('lk','random','Случайное положение',Ly.random);
     if(Ly.random)h+=rw('lk','count','Количество',1,300,1,Ly.count)+rw('lk','chaos','Хаос положения',0,100,1,Ly.chaos);
     h+=ck('lk','colorMode','Цвет слоя',Ly.colorMode)
@@ -446,20 +448,11 @@ function renderLook(){
   lookEl.querySelectorAll('[data-elr]').forEach(function(b){
     b.onclick=function(){ Ly.elems.splice(+b.dataset.elr,1); renderLook(); reqRender(); };
   });
-  lookEl.querySelectorAll('[data-elm]').forEach(function(inp){
-    inp.addEventListener('change',function(){
-      var e=Ly.elems[+inp.dataset.elm]; e.mode=inp.value;
-      if(e.mode==='grp'&&!e.g)e.g=defGroup();
-      renderLook(); reqRender();
-    });
-  });
   lookEl.querySelectorAll('[data-elg]').forEach(function(b){
     b.onclick=function(){ openGroupEditor(+b.dataset.elg); };
   });
   var ae=lookEl.querySelector('#addEl');
   if(ae)ae.onclick=function(){ Ly.elems.push({t:'A',w:50,s:26,r:'none',rs:6,rd:'cw',mode:'std'}); renderLook(); reqRender(); };
-  var ag=lookEl.querySelector('#addElGrp');
-  if(ag)ag.onclick=function(){ Ly.elems.push({t:'A',w:50,s:40,r:'none',rs:6,rd:'cw',mode:'grp',g:defGroup()}); renderLook(); reqRender(); };
 
   lookEl.querySelectorAll('[data-ex]').forEach(function(inp){
     inp.addEventListener('change',function(){
@@ -485,7 +478,39 @@ function renderLook(){
     }
   });
   bindColors(lookEl,function(){ return Ly; });
+  var hp=lookEl.querySelector('#helpOpen');
+  if(hp)hp.onclick=openLayerHelp;
 }
+
+/* окно справки по выбранному слою: что делает + примеры */
+function openLayerHelp(){
+  var ov=$('bgHelpOverlay'); if(!ov)return;
+  var Ly=state&&state.layers[sel];
+  if(!Ly)return;
+  var t=Ly.type, info=LAYER_INFO[t]||{d:'',ex:[]};
+  $('bgHelpTitle').textContent=NAMES[t]+' — что делает слой';
+  $('bgHelpDesc').textContent=info.d;
+  var box=$('bgHelpExamples');
+  box.innerHTML='';
+  (info.ex&&info.ex.length?info.ex:[{}]).forEach(function(ex,i){
+    var d=document.createElement('div'); d.className='help-ex';
+    var svg=document.createElement('div');
+    svg.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid slice">'+buildSVG({bgBase:'#0d0d0d',bgs:[{on:false,color:'#000',x:50,y:50,size:60,op:0}],layers:[L(t,ex)]},'hp'+t+i)+'</svg>';
+    d.appendChild(svg);
+    var lb=document.createElement('div'); lb.className='help-ex-lb';
+    lb.textContent=i===0?'обычный':'вариант '+(i+1);
+    d.appendChild(lb);
+    box.appendChild(d);
+  });
+  ov.classList.remove('hidden');
+}
+(function(){
+  var ov=$('bgHelpOverlay'); if(!ov)return;
+  function close(){ ov.classList.add('hidden'); }
+  var cl=$('bgHelpClose'); if(cl)cl.onclick=close;
+  var dn=$('bgHelpDone'); if(dn)dn.onclick=close;
+  ov.addEventListener('mousedown',function(e){ if(e.target.id==='bgHelpOverlay')close(); });
+})();
 
 /* ---------- 12. Редактор кривых пульсации ---------- */
 function makeCurve(box,pts,cb){
@@ -856,6 +881,8 @@ function closeGroupEditor(){ $('bgGroupOverlay').classList.add('hidden'); }
   ov.addEventListener('mousedown',function(e){ if(e.target.id==='bgGroupOverlay')closeGroupEditor(); });
   document.addEventListener('keydown',function(e){
     if(e.key==='Escape'){
+      var hov=$('bgHelpOverlay');
+      if(hov&&!hov.classList.contains('hidden')){ hov.classList.add('hidden'); return; }
       var ov2=$('bgGroupOverlay');
       if(ov2&&!ov2.classList.contains('hidden'))closeGroupEditor();
       return;

@@ -56,7 +56,27 @@ var I={
   crt:'<svg class="ic" viewBox="0 0 16 16"><rect x="1" y="2" width="14" height="12" rx="2" fill="none" stroke="currentColor"/><path d="M1 5h14M1 8h14M1 11h14" stroke="currentColor"/></svg>',
   spotlight:'<svg class="ic" viewBox="0 0 16 16"><circle cx="8" cy="8" r="3.2" fill="currentColor"/><path d="M8 1v2.5M8 12.5V15M1 8h2.5M12.5 8H15M3 3l1.8 1.8M11.2 11.2l1.8 1.8M13 3l-1.8 1.8M4.8 11.2L3 13" stroke="currentColor"/></svg>',
   terminal:'<svg class="ic" viewBox="0 0 16 16"><path d="M2 3l4 5-4 5M8 13h6" stroke="currentColor" fill="none" stroke-width="1.6"/></svg>',
-  dup:'<svg class="ic" viewBox="0 0 16 16"><rect x="5" y="5" width="9" height="9" rx="1.5" fill="none" stroke="currentColor"/><path d="M11 2H3.5A1.5 1.5 0 0 0 2 3.5V11" fill="none" stroke="currentColor"/></svg>'
+  dup:'<svg class="ic" viewBox="0 0 16 16"><rect x="5" y="5" width="9" height="9" rx="1.5" fill="none" stroke="currentColor"/><path d="M11 2H3.5A1.5 1.5 0 0 0 2 3.5V11" fill="none" stroke="currentColor"/></svg>',
+  info:'<svg class="ic" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor"/><path d="M8 7.2v3.6M8 4.6v.3" stroke="currentColor" stroke-width="1.6"/></svg>'
+};
+
+/* справка по слоям: что делает + примеры (переопределения параметров) */
+var LAYER_INFO={
+  grid:{d:'Повторяющаяся сетка линий. Меняй шаг, наклон, цвет, движение и дрейф цвета.',ex:[{}, {size:80,size2:80,op:40},{drift:true,driftColors:['#00ffc8','#ff4ecd'],driftDur:4}]},
+  dots:{d:'Слой из точек по сетке. Шаг, размер и цвет настраиваются.',ex:[{}, {th:5,size:80,size2:50}]},
+  stripes:{d:'Диагональные полосы. Меняется шаг, толщина и наклон.',ex:[{}, {size:18,rot:30,th:5}]},
+  waves:{d:'Волны по экрану. Изгиб, шаг и движение.',ex:[{}, {bend:30,size:100,size2:40}]},
+  shapes:{d:'Фигуры по сетке: круг, квадрат, треугольник, звезда, кольцо, капля.',ex:[{shape:'star',count:9,fs:44,outline:true,th:3},{shape:'ring',count:4,fs:90,outline:true,ringTh:25}]},
+  symbols:{d:'Символы и эмодзи по сетке. У каждого элемента свой текст, размер, частота (вес) и вращение.',ex:[{elems:[{t:'✦',w:50,s:30},{t:'❖',w:30,s:30},{t:'◇',w:20,s:30}],fs:30},{elems:[{t:'0',w:50,s:20},{t:'1',w:50,s:20}],fs:20}]},
+  group:{d:'Собственная фигура из частей: текст, эллипс, прямоугольник, линия. Собирается в редакторе сборки.',ex:[{}, {g:[{ty:'r',x:50,y:50,rx:26,ry:16},{ty:'l',x:28,y:62,rx:22},{ty:'t',x:55,y:52,ch:'A',fs:18},{ty:'e',x:74,y:42,rx:8,ry:5}]}]},
+  image:{d:'Картинка с цветокором (яркость, контраст, оттенок) и режимом плитки.',ex:[{src:'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 400 400%27%3E%3Crect width=%27400%27 height=%27400%27 fill=%27%23222%27/%3E%3Ccircle cx=%27200%27 cy=%27200%27 r=%2790%27 fill=%27%23ff4ecd%27/%3E%3C/svg%3E'}, {scale:80,sepia:60}]},
+  cursor:{d:'Эффект под курсором: линза-капля, растворение, глитч, фонарик, инверсия + объект на курсоре.',ex:[{fx:'dissolve',radius:160,strength:60},{fx:'glitch',radius:150,strength:60,gAmp:18}]},
+  scan:{d:'Полосы развёртки (сканлайны) поверх всего фона.',ex:[{}, {size:10,op:50,th:4}]},
+  vignette:{d:'Затемнение или цветное свечение краёв экрана.',ex:[{}, {op:40,color:'#ff4ecd'}]},
+  particles:{d:'Сеть из частиц. Статика (SVG) или живой интерактив (canvas) — частицы реагируют на курсор.',ex:[{count:80,distance:160,color:'#00ffc8',fs:4},{count:120,distance:120,color:'#ff4ecd',fs:3}]},
+  crt:{d:'Эффект старого монитора: сканлайны + периодический глитч-дрожание сигнала.',ex:[{}, {scanlineHeight:3,glitchFrequency:2}]},
+  spotlight:{d:'Прожектор: световое пятно (или тень) за курсором.',ex:[{}, {radius:320,soft:60}]},
+  terminal:{d:'Матрица: падающие символы кода.',ex:[{}, {fs:32,color:'#22d3ee',op:80}]}
 };
 
 /* ---------- 2. Тёмный пикер цвета ---------- */
