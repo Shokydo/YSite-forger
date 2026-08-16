@@ -175,10 +175,33 @@ function renderList(){
   listEl.appendChild(bgd);
 }
 $('bgaddBtn').onclick=function(){
-  state.layers.push(newLayer($('bgaddType').value));
-  sel=state.layers.length-1;
-  refresh();
+  var ov=$('bgAddOverlay'); if(!ov)return;
+  var box=$('bgAddTypes');
+  if(!box.children.length){
+    var order=['grid','dots','stripes','waves','shapes','symbols','group','particles','cursor','scan','vignette','image','crt','spotlight','terminal'];
+    order.forEach(function(t){
+      var c=document.createElement('button');
+      c.className='add-type'+(state&&state.layers.some(function(l){return l.type===t;})?' has':'');
+      c.title=(LAYER_INFO[t]&&LAYER_INFO[t].d)||'';
+      c.innerHTML='<span class="add-type-ic">'+I[t]+'</span><b>'+NAMES[t]+'</b>';
+      c.onclick=function(){
+        state.layers.push(newLayer(t));
+        sel=state.layers.length-1;
+        ov.classList.add('hidden');
+        refresh();
+      };
+      box.appendChild(c);
+    });
+  }
+  ov.classList.remove('hidden');
 };
+(function(){
+  var ov=$('bgAddOverlay'); if(!ov)return;
+  function close(){ ov.classList.add('hidden'); }
+  var cl=$('bgAddClose'); if(cl)cl.onclick=close;
+  var cn=$('bgAddCancel'); if(cn)cn.onclick=close;
+  ov.addEventListener('mousedown',function(e){ if(e.target.id==='bgAddOverlay')close(); });
+})();
 
 /* ---------- 10. UI-хелперы ---------- */
 function cw(l,k,v){ return '<div class="crow"><span>'+l+'</span><div class="cright"><input class="hex" data-ch="'+k+'" value="'+v+'" spellcheck="false"><div class="csw" data-cw="'+k+'" style="background:'+v+'"></div></div></div>'; }
@@ -881,6 +904,8 @@ function closeGroupEditor(){ $('bgGroupOverlay').classList.add('hidden'); }
   ov.addEventListener('mousedown',function(e){ if(e.target.id==='bgGroupOverlay')closeGroupEditor(); });
   document.addEventListener('keydown',function(e){
     if(e.key==='Escape'){
+      var aov=$('bgAddOverlay');
+      if(aov&&!aov.classList.contains('hidden')){ aov.classList.add('hidden'); return; }
       var hov=$('bgHelpOverlay');
       if(hov&&!hov.classList.contains('hidden')){ hov.classList.add('hidden'); return; }
       var ov2=$('bgGroupOverlay');

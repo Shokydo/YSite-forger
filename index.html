@@ -476,24 +476,7 @@
             <section>
               <h3>Слои</h3>
               <div class="addrow">
-                <select id="bgaddType">
-                  <option value="grid">Сетка</option>
-                  <option value="dots">Точки</option>
-                  <option value="stripes">Полосы</option>
-                  <option value="waves">Волны</option>
-                  <option value="shapes">Фигуры</option>
-                  <option value="symbols">Символы</option>
-                  <option value="group">Сборка фигур</option>
-                  <option value="image">Изображение</option>
-                  <option value="cursor">Курсор-FX</option>
-                  <option value="particles">Сеть частиц</option>
-                  <option value="crt">Старый монитор</option>
-                  <option value="spotlight">Прожектор</option>
-                  <option value="terminal">Матрица</option>
-                  <option value="scan">Сканлайны</option>
-                  <option value="vignette">Виньетка</option>
-                </select>
-                <button class="btn" id="bgaddBtn">+</button>
+                <button class="btn" id="bgaddBtn" style="width:100%">+ Добавить слой</button>
               </div>
               <div id="bglayers" style="display:flex;flex-direction:column;gap:6px"></div>
             </section>
@@ -601,6 +584,24 @@
             <button class="btn btn-danger" id="bgGroupDel">Удалить</button>
             <button class="btn btn-primary" id="bgGroupDone">Готово</button>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Выбор типа слоя -->
+  <div class="modal-overlay hidden" id="bgAddOverlay">
+    <div class="modal gwin" id="bgAddWin">
+      <div class="modal-header">
+        <h2>Добавить слой</h2>
+        <button class="btn-close" id="bgAddClose">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="gwin-body">
+        <div class="add-types" id="bgAddTypes"></div>
+        <div class="rr gwin-btns">
+          <button class="btn btn-primary" id="bgAddCancel">Отмена</button>
         </div>
       </div>
     </div>

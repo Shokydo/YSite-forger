@@ -2572,6 +2572,79 @@ textarea {
   overflow: hidden;
 }
 
+/* окно выбора типа слоя */
+#bgAddOverlay .gwin {
+  width: min(680px, 94vw);
+  max-height: min(720px, 92vh);
+  display: grid;
+  grid-template-rows: auto 1fr;
+  overflow: hidden;
+}
+
+#bgAddOverlay .gwin-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow: auto;
+  padding: 20px 24px;
+  min-height: 0;
+}
+
+#bgAddOverlay .add-types {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+#bgAddOverlay .add-type {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 10px;
+  background: #161616;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text, #eee);
+  cursor: pointer;
+  transition: var(--transition);
+  font: inherit;
+}
+
+#bgAddOverlay .add-type:hover {
+  border-color: #4a9eff;
+  background: #1c1f24;
+}
+
+#bgAddOverlay .add-type.has {
+  opacity: .55;
+  border-style: dashed;
+}
+
+#bgAddOverlay .add-type-ic {
+  color: #4a9eff;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#bgAddOverlay .add-type-ic .ic {
+  width: 22px;
+  height: 22px;
+}
+
+#bgAddOverlay .add-type b {
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+#bgAddOverlay .gwin-btns {
+  justify-content: flex-end;
+}
+
 /* окно справки по слою */
 #bgHelpOverlay .gwin {
   width: min(820px, 94vw);
