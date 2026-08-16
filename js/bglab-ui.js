@@ -185,19 +185,36 @@ $('bgaddBtn').onclick=function(){
       c.title=(LAYER_INFO[t]&&LAYER_INFO[t].d)||'';
       c.innerHTML='<span class="add-type-ic">'+I[t]+'</span><b>'+NAMES[t]+'</b>';
       c.onclick=function(){
+        layerTipHide();
         state.layers.push(newLayer(t));
         sel=state.layers.length-1;
         ov.classList.add('hidden');
         refresh();
       };
+      c.onmouseenter=function(){ layerTipShow(t,c); };
+      c.onmouseleave=layerTipHide;
       box.appendChild(c);
     });
   }
   ov.classList.remove('hidden');
 };
+/* превью-подсказка: пример слоя при наведении на карточку */
+var tipEl=null;
+function layerTipShow(t,el){
+  if(!tipEl){ tipEl=document.createElement('div'); tipEl.id='bgAddTip'; document.body.appendChild(tipEl); }
+  var ex=(LAYER_INFO[t]&&LAYER_INFO[t].ex&&LAYER_INFO[t].ex[0])||{};
+  tipEl.innerHTML='<b>'+NAMES[t]+'</b><svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid slice">'+buildSVG({bgBase:'#0d0d0d',bgs:[{on:false,color:'#000',x:50,y:50,size:60,op:0}],layers:[L(t,ex)]},'at'+t)+'</svg>';
+  tipEl.style.display='block';
+  var r=el.getBoundingClientRect(),vw=innerWidth||document.documentElement.clientWidth;
+  var left=r.right+12, top=Math.max(8,r.top-60);
+  if(left+232>vw)left=r.left-232;
+  tipEl.style.left=left+'px';
+  tipEl.style.top=top+'px';
+}
+function layerTipHide(){ if(tipEl)tipEl.style.display='none'; }
 (function(){
   var ov=$('bgAddOverlay'); if(!ov)return;
-  function close(){ ov.classList.add('hidden'); }
+  function close(){ ov.classList.add('hidden'); layerTipHide(); }
   var cl=$('bgAddClose'); if(cl)cl.onclick=close;
   var cn=$('bgAddCancel'); if(cn)cn.onclick=close;
   ov.addEventListener('mousedown',function(e){ if(e.target.id==='bgAddOverlay')close(); });
