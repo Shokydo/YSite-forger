@@ -2625,47 +2625,6 @@ textarea {
   gap: 8px;
 }
 
-#bgGroupOverlay .gchips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-#bgGroupOverlay .gchip {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: #1c1c1c;
-  color: var(--text);
-  cursor: pointer;
-  font-size: 13px;
-  transition: var(--transition);
-}
-
-#bgGroupOverlay .gchip:hover {
-  border-color: var(--border-hover);
-  background: var(--bg-hover);
-}
-
-#bgGroupOverlay .gchip.active {
-  border-color: #4a9eff;
-  background: rgba(74, 158, 255, 0.15);
-  color: #fff;
-}
-
-#bgGroupOverlay .gchip .gchip-ic {
-  font-size: 14px;
-  line-height: 1;
-}
-
-#bgGroupOverlay .gadd-row .btn {
-  padding: 5px 10px;
-  font-size: 12px;
-}
-
 #bgGroupOverlay .grow-row {
   display: grid;
   grid-template-columns: 70px 1fr 64px;
@@ -2704,46 +2663,11 @@ textarea {
   justify-self: end;
 }
 
-#bgGroupOverlay select.gt {
-  background: #1e1e1e;
-  border: 1px solid #666;
-  color: #fff;
-  border-radius: 8px;
-  padding: 6px 8px;
-  font-size: 12px;
-  outline: none;
-}
-
 #bgGroupOverlay .gpart-panel {
   border: 1px solid var(--border);
   border-radius: 12px;
   background: #141414;
   padding: 14px;
-}
-
-#bgGroupOverlay .gpart-panel-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-
-#bgGroupOverlay .gpart-panel-head b {
-  font-size: 14px;
-}
-
-#bgGroupOverlay .gpart-panel-head .gt {
-  width: 130px;
-}
-
-#bgGroupOverlay .gpart-empty {
-  color: #999;
-  font-size: 13px;
-  padding: 20px 0;
-  text-align: center;
-  border: 1px dashed #3a3a3a;
-  border-radius: 12px;
 }
 
 #bgGroupOverlay #bgGroupDone {

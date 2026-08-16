@@ -600,138 +600,50 @@ function grpHost(){
 }
 function openGroupEditor(ei){
   if(!state||!state.layers[sel])return;
-  grpCtx=ei!=null?{kind:'el',ei:ei,selPart:0}:{kind:'layer',selPart:0};
+  grpCtx=ei!=null?{kind:'el',ei:ei}:{kind:'layer'};
   var host=grpHost();
   if(!host)return;
-  if(!host.g)host.g=defGroup();
-  if(!(host.g[grpCtx.selPart]))grpCtx.selPart=0;
+  var tt=null;
+  (host.g||[]).forEach(function(p){ if(!tt&&p.ty==='t')tt=p; });
+  if(tt)host.g=[{ty:'t',x:50,y:50,ch:tt.ch||'A',fs:tt.fs||40,rot:tt.rot||0}];
+  else host.g=defGroup();
   var T=$('bgGroupTitle');
   if(T)T.textContent=grpCtx.kind==='el'
     ?'Редактор сборки — '+NAMES.symbols+' '+(sel+1)+' · Элемент #'+(grpCtx.ei+1)
     :'Редактор сборки — слой '+(sel+1)+' ('+(NAMES.symbols||'Символы')+')';
-  renderPartsBar(); renderPartPanel(); renderGroupPreview();
+  renderGroupEditor();
   $('bgGroupOverlay').classList.remove('hidden');
 }
-/* лёгкое превью 0..100: каждая часть в <g data-gi>, выбранная подсвечена */
-function gpartBox(p){
-  var rx,ry;
-  if(p.ty==='e'||p.ty==='r'){ rx=p.rx!=null?p.rx:20; ry=p.ry!=null?p.ry:20; }
-  else if(p.ty==='l'){ rx=p.rx!=null?p.rx:20; ry=1+((p.th!=null?p.th:2)/2); }
-  else { rx=1+((p.fs!=null?p.fs:20)/2); ry=1+((p.fs!=null?p.fs:20)*0.65/2); }
-  return {rx:rx,ry:ry};
-}
+/* превью: строка символов по центру с поворотом */
 function renderGroupPreview(){
   var host=grpHost(), box=$('bgGroupPreview');
   if(!host||!box)return;
-  var g=host.g||[];
-  if(!g.length){ box.innerHTML='<div class="hint" style="padding:14px;text-align:center;color:#999">Пусто. Добавь части.</div>'; return; }
+  var p=(host.g&&host.g[0])||{ty:'t',x:50,y:50,ch:'A',fs:40,rot:0};
   try{
-    var t='<svg viewBox="0 0 100 100"><g transform="translate(50 50)">'+groupContent(g,100,'#fff',false,function(p,i){
-      var b=gpartBox(p);
-      var tr='transform="translate('+((p.x!=null?p.x:50)-50).toFixed(2)+' '+((p.y!=null?p.y:50)-50).toFixed(2)+') rotate('+(p.rot||0)+')"';
-      var hit='<rect x="'+(-b.rx)+'" y="'+(-b.ry)+'" width="'+(b.rx*2)+'" height="'+(b.ry*2)+'" fill="rgba(74,158,255,0.05)" stroke="rgba(74,158,255,0.3)" '+tr+'/>';
-      var post='</g>';
-      if(i===grpCtx.selPart)post='<rect x="'+(-b.rx)+'" y="'+(-b.ry)+'" width="'+(b.rx*2)+'" height="'+(b.ry*2)+'" fill="none" stroke="#4a9eff" stroke-width="0.7" stroke-dasharray="2 1.6" '+tr+'/>'+post;
-      return ['<g data-gi="'+i+'" style="cursor:pointer">'+hit,post];
-    })+'</svg>';
+    var t='<svg viewBox="0 0 100 100"><g transform="translate(50 50)">'+groupContent([p],100,'#fff',false)+'</svg>';
     var svg=box.querySelector('svg');
     if(svg){ svg.innerHTML=t.replace(/^<svg[^>]*>/,'').replace(/<\/svg>\s*$/,''); }
-    else{ box.innerHTML=t; bindGroupPreview(box); }
+    else{ box.innerHTML=t; }
   }catch(e){ box.innerHTML='<div class="hint" style="padding:14px;text-align:center;color:#999">Ошибка превью</div>'; }
-}
-/* клик = выбор части, drag = движение в координатах 0..100 */
-function bindGroupPreview(box){
-  var svg=box.querySelector('svg');
-  if(!svg||svg._gb)return;
-  svg._gb=1;
-  function toXY(e){
-    var r=svg.getBoundingClientRect();
-    return {x:(e.clientX-r.left)/r.width*100,y:(e.clientY-r.top)/r.height*100};
-  }
-  svg.addEventListener('pointerdown',function(e){
-    var host=grpHost(); if(!host)return;
-    var g=host.g||[];
-    var gi=null, el=e.target;
-    while(el&&el!==svg){ if(el.getAttribute&&el.getAttribute('data-gi')!=null){ gi=+el.getAttribute('data-gi'); break; } el=el.parentNode; }
-    if(gi!=null&&g[gi]){
-      grpCtx.selPart=gi;
-      renderPartsBar(); renderPartPanel(); renderGroupPreview();
-    }
-    if(grpCtx.selPart==null||!g[grpCtx.selPart])return;
-    if(gi==null)return; /* клик по пустому месту — без drag */
-    e.preventDefault();
-    var p=g[grpCtx.selPart];
-    var st=toXY(e);
-    var dx0=st.x-(p.x!=null?p.x:50), dy0=st.y-(p.y!=null?p.y:50);
-    try{ svg.setPointerCapture(e.pointerId); }catch(err){}
-    function mv(e2){
-      var q=toXY(e2);
-      p.x=Math.max(0,Math.min(100,q.x-dx0));
-      p.y=Math.max(0,Math.min(100,q.y-dy0));
-      renderGroupPreview(); renderPartPanel(); reqRender();
-    }
-    function up(){
-      svg.removeEventListener('pointermove',mv);
-      svg.removeEventListener('pointerup',up);
-      svg.removeEventListener('pointercancel',up);
-    }
-    svg.addEventListener('pointermove',mv);
-    svg.addEventListener('pointerup',up);
-    svg.addEventListener('pointercancel',up);
-  });
 }
 function growRow(f,lb,val,min,max,st){
   val=val!=null?val:min;
   st=st||1;
   return '<div class="grow-row"><span class="lbl">'+lb+'</span><input type="range" data-gf="'+f+'" min="'+min+'" max="'+max+'" step="'+st+'" value="'+val+'"><input class="num" type="number" data-gf="'+f+'" min="'+min+'" max="'+max+'" step="'+st+'" value="'+val+'"></div>';
 }
-function gchipIcon(ty){ return ty==='e'?'●':ty==='r'?'▭':ty==='l'?'—':'A'; }
-function renderPartsBar(){
-  var host=grpHost(), box=$('bgGroupPartsBar');
-  if(!host||!box)return;
-  var g=host.g||[];
-  box.innerHTML='';
-  if(!g.length){ box.innerHTML='<div class="gpart-empty" style="padding:10px">Частей нет — добавьте ниже.</div>'; return; }
-  g.forEach(function(p,i){
-    var c=document.createElement('button');
-    c.className='gchip'+(i===grpCtx.selPart?' active':'');
-    c.title='Часть '+(i+1);
-    c.innerHTML=(i+1)+'<span class="gchip-ic">'+gchipIcon(p.ty)+'</span>';
-    c.onclick=function(){
-      grpCtx.selPart=i;
-      renderPartsBar(); renderGroupPreview(); renderPartPanel();
-    };
-    box.appendChild(c);
-  });
-}
-var TYLABEL={e:'Овал',r:'Прямоугольник',l:'Палочка',t:'Буква'};
-function renderPartPanel(){
-  var host=grpHost(), box=$('bgGroupPanel');
-  if(!host||!box)return;
-  var g=host.g||[];
-  var i=grpCtx.selPart;
-  if(i==null||!g[i]){ box.innerHTML='<div class="gpart-empty">Нет выбранной части.</div>'; return; }
-  var p=g[i];
-  box.innerHTML='<div class="gpart-panel">'
-    +'<div class="gpart-panel-head"><b>Часть '+(i+1)+' · '+(TYLABEL[p.ty]||'Овал')+'</b>'
-    +'<span class="rr">'
-    +'<select class="gt" data-gf="ty"><option value="e"'+(p.ty==='e'?' selected':'')+'>Овал</option><option value="r"'+(p.ty==='r'?' selected':'')+'>Прямоугольник</option><option value="l"'+(p.ty==='l'?' selected':'')+'>Палочка</option><option value="t"'+(p.ty==='t'?' selected':'')+'>Буква</option></select>'
-    +'<button class="btn sm" data-gact="dup" title="Дублировать">'+I.dup+'</button>'
-    +'<button class="btn sm" data-gact="del" title="Удалить">'+I.rm+'</button>'
-    +'</span></div>'
-    +(p.ty==='t'?'<label class="grow-row"><span class="lbl">Буква</span><input class="txt" data-gf="ch" maxlength="3" value="'+esc(p.ch||'A')+'" style="justify-self:start;grid-column:2/4"></label>'+growRow('fs','Размер',p.fs,6,80):'')
-    +growRow('x','X',p.x,0,100)
-    +growRow('y','Y',p.y,0,100)
-    +growRow('rx','Ширина',p.rx,1,60)
-    +(p.ty==='e'||p.ty==='r'?growRow('ry','Высота',p.ry,1,60):'')
+function renderGroupEditor(){
+  var host=grpHost();
+  if(!host)return;
+  var p=host.g&&host.g[0];
+  if(!p)return;
+  var box=$('bgGroupPanel');
+  if(!box)return;
+  box.innerHTML='<div class="crow"><b>Строка символов</b></div>'
+    +'<div class="gpart-panel">'
+    +'<label class="grow-row"><span class="lbl">Символы</span><input class="txt" data-gf="ch" maxlength="32" value="'+esc(p.ch||'A')+'" style="grid-column:2/4;justify-self:stretch"></label>'
+    +growRow('fs','Размер',p.fs,6,100)
     +growRow('rot','Поворот',p.rot,-180,180)
-    +(p.ty==='l'?growRow('th','Толщина',p.th,0.5,10,0.5):'')
     +'</div>';
-  box.querySelector('.gt').onchange=function(){
-    p.ty=box.querySelector('.gt').value;
-    if(p.ty==='t'&&p.ch==null)p.ch='A';
-    renderPartsBar(); renderPartPanel(); renderGroupPreview(); reqRender();
-  };
   box.querySelectorAll('[data-gf]').forEach(function(inp){
     inp.addEventListener('input',function(){
       if(inp.dataset.gf==='ch'){ p.ch=inp.value; }
@@ -739,56 +651,18 @@ function renderPartPanel(){
       renderGroupPreview(); reqRender();
     });
   });
-  box.querySelector('[data-gact="dup"]').onclick=function(){
-    var c=JSON.parse(JSON.stringify(p));
-    c.x=Math.min(100,(c.x||0)+4); c.y=Math.min(100,(c.y||0)+4);
-    g.splice(i+1,0,c);
-    grpCtx.selPart=i+1;
-    renderPartsBar(); renderPartPanel(); renderGroupPreview(); reqRender();
-  };
-  box.querySelector('[data-gact="del"]').onclick=function(){
-    g.splice(i,1);
-    grpCtx.selPart=g.length?Math.max(0,Math.min(i,g.length-1)):null;
-    renderPartsBar(); renderPartPanel(); renderGroupPreview(); reqRender();
-  };
+  renderGroupPreview();
 }
 function closeGroupEditor(){ $('bgGroupOverlay').classList.add('hidden'); }
 (function(){
   var ov=$('bgGroupOverlay');
-  ov.querySelectorAll('[data-gadd]').forEach(function(b){
-    b.onclick=function(){
-      var host=grpHost(); if(!host)return;
-      var g=host.g=host.g||[];
-      var ty=b.dataset.gadd;
-      if(ty==='e')g.push({ty:'e',x:50,y:50,rx:20,ry:20,rot:0});
-      else if(ty==='r')g.push({ty:'r',x:50,y:50,rx:14,ry:14,rot:0});
-      else if(ty==='l')g.push({ty:'l',x:50,y:50,rx:20,rot:0,th:2});
-      else g.push({ty:'t',x:50,y:50,ch:'A',fs:20,rot:0});
-      grpCtx.selPart=g.length-1;
-      renderPartsBar(); renderPartPanel(); renderGroupPreview(); reqRender();
-    };
-  });
   $('bgGroupClose').onclick=closeGroupEditor;
   $('bgGroupDone').onclick=closeGroupEditor;
   ov.addEventListener('mousedown',function(e){ if(e.target.id==='bgGroupOverlay')closeGroupEditor(); });
   document.addEventListener('keydown',function(e){
+    if(e.key!=='Escape')return;
     var ov2=$('bgGroupOverlay');
-    if(!ov2||ov2.classList.contains('hidden'))return;
-    if(e.key==='Escape'){ closeGroupEditor(); return; }
-    var host=grpHost(); if(!host)return;
-    var g=host.g||[];
-    if(grpCtx.selPart==null||!g[grpCtx.selPart])return;
-    if(e.target&&/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;
-    var dx=0,dy=0;
-    if(e.key==='ArrowLeft')dx=-1; else if(e.key==='ArrowRight')dx=1;
-    else if(e.key==='ArrowUp')dy=-1; else if(e.key==='ArrowDown')dy=1;
-    if(dx||dy){
-      e.preventDefault();
-      var st=e.shiftKey?5:1,p=g[grpCtx.selPart];
-      p.x=Math.max(0,Math.min(100,(p.x||0)+dx*st));
-      p.y=Math.max(0,Math.min(100,(p.y||0)+dy*st));
-      renderGroupPreview(); renderPartPanel(); reqRender();
-    }
+    if(ov2&&!ov2.classList.contains('hidden'))closeGroupEditor();
   });
 })();
 
