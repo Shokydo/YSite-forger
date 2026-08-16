@@ -181,7 +181,7 @@ $('bgaddBtn').onclick=function(){
     var order=['grid','dots','stripes','waves','shapes','symbols','group','particles','cursor','scan','vignette','image','crt','spotlight','terminal'];
     order.forEach(function(t){
       var c=document.createElement('button');
-      c.className='add-type'+(state&&state.layers.some(function(l){return l.type===t;})?' has':'');
+      c.className='add-type';
       c.title=(LAYER_INFO[t]&&LAYER_INFO[t].d)||'';
       c.innerHTML='<span class="add-type-ic">'+I[t]+'</span><b>'+NAMES[t]+'</b>';
       c.onclick=function(){
@@ -200,10 +200,46 @@ $('bgaddBtn').onclick=function(){
 };
 /* превью-подсказка: пример слоя при наведении на карточку */
 var tipEl=null;
+function svgAnim(el,tag,attrs){
+  var a=document.createElementNS('http://www.w3.org/2000/svg',tag);
+  for(var k in attrs)a.setAttribute(k,attrs[k]);
+  el.appendChild(a);
+}
+function injectPreviewMove(svgEl){
+  if(!svgEl)return;
+  var cxv=[800,480,800,1120,800],cyv=[450,270,450,630,450];
+  ['h','hi','ring'].forEach(function(sfx){
+    svgEl.querySelectorAll('[id$="'+sfx+'"]').forEach(function(el){
+      svgAnim(el,'animate',{attributeName:'cx',values:cxv.join(';'),dur:'6s',repeatCount:'indefinite'});
+      svgAnim(el,'animate',{attributeName:'cy',values:cyv.join(';'),dur:'6s',repeatCount:'indefinite'});
+    });
+  });
+  svgEl.querySelectorAll('[id$="o"]').forEach(function(el){
+    svgAnim(el,'animateTransform',{attributeName:'transform',type:'translate',additive:'sum',values:'0 0;-320 -180;0 0;320 180;0 0',dur:'6s',repeatCount:'indefinite'});
+  });
+  svgEl.querySelectorAll('radialGradient').forEach(function(g){
+    svgAnim(g,'animate',{attributeName:'cx',values:cxv.join(';'),dur:'6s',repeatCount:'indefinite'});
+    svgAnim(g,'animate',{attributeName:'cy',values:cyv.join(';'),dur:'6s',repeatCount:'indefinite'});
+  });
+}
+function helpState(t,ex){
+  var info=LAYER_INFO[t]||{},layers=[];
+  (info.base||[]).forEach(function(b){layers.push(L(b[0],b[1]))});
+  layers.push(L(t,ex||{}));
+  return{bgBase:'#0d0d0d',bgs:[{on:false,color:'#000',x:50,y:50,size:60,op:0}],layers:layers};
+}
+function helpExample(t,ex,i){
+  var div=document.createElement('div');
+  div.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid slice">'+buildSVG(helpState(t,ex),'hp'+t+i)+'</svg>';
+  if(t==='cursor'||t==='spotlight')injectPreviewMove(div.querySelector('svg'));
+  return div;
+}
 function layerTipShow(t,el){
   if(!tipEl){ tipEl=document.createElement('div'); tipEl.id='bgAddTip'; document.body.appendChild(tipEl); }
   var ex=(LAYER_INFO[t]&&LAYER_INFO[t].ex&&LAYER_INFO[t].ex[0])||{};
-  tipEl.innerHTML='<b>'+NAMES[t]+'</b><svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid slice">'+buildSVG({bgBase:'#0d0d0d',bgs:[{on:false,color:'#000',x:50,y:50,size:60,op:0}],layers:[L(t,ex)]},'at'+t)+'</svg>';
+  var hd=helpExample(t,ex,'t');
+  tipEl.innerHTML='<b>'+NAMES[t]+'</b>';
+  tipEl.appendChild(hd.firstChild);
   tipEl.style.display='block';
   var r=el.getBoundingClientRect(),vw=innerWidth||document.documentElement.clientWidth;
   var left=r.right+12, top=Math.max(8,r.top-60);
@@ -534,9 +570,7 @@ function openLayerHelp(){
   box.innerHTML='';
   (info.ex&&info.ex.length?info.ex:[{}]).forEach(function(ex,i){
     var d=document.createElement('div'); d.className='help-ex';
-    var svg=document.createElement('div');
-    svg.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid slice">'+buildSVG({bgBase:'#0d0d0d',bgs:[{on:false,color:'#000',x:50,y:50,size:60,op:0}],layers:[L(t,ex)]},'hp'+t+i)+'</svg>';
-    d.appendChild(svg);
+    d.appendChild(helpExample(t,ex,i));
     var lb=document.createElement('div'); lb.className='help-ex-lb';
     lb.textContent=i===0?'обычный':'вариант '+(i+1);
     d.appendChild(lb);

@@ -2616,11 +2616,6 @@ textarea {
   background: #1c1f24;
 }
 
-#bgAddOverlay .add-type.has {
-  opacity: .55;
-  border-style: dashed;
-}
-
 #bgAddOverlay .add-type-ic {
   color: #ffffff;
   width: 26px;

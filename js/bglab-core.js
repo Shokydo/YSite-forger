@@ -70,12 +70,12 @@ var LAYER_INFO={
   symbols:{d:'Символы и эмодзи по сетке. У каждого элемента свой текст, размер, частота (вес) и вращение.',ex:[{elems:[{t:'✦',w:50,s:30},{t:'❖',w:30,s:30},{t:'◇',w:20,s:30}],fs:30},{elems:[{t:'0',w:50,s:20},{t:'1',w:50,s:20}],fs:20}]},
   group:{d:'Собственная фигура из частей: текст, эллипс, прямоугольник, линия. Собирается в редакторе сборки.',ex:[{}, {g:[{ty:'r',x:50,y:50,rx:26,ry:16},{ty:'l',x:28,y:62,rx:22},{ty:'t',x:55,y:52,ch:'A',fs:18},{ty:'e',x:74,y:42,rx:8,ry:5}]}]},
   image:{d:'Картинка с цветокором (яркость, контраст, оттенок) и режимом плитки.',ex:[{src:'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 400 400%27%3E%3Crect width=%27400%27 height=%27400%27 fill=%27%23222%27/%3E%3Ccircle cx=%27200%27 cy=%27200%27 r=%2790%27 fill=%27%23ff4ecd%27/%3E%3C/svg%3E'}, {scale:80,sepia:60}]},
-  cursor:{d:'Эффект под курсором: линза-капля, растворение, глитч, фонарик, инверсия + объект на курсоре.',ex:[{fx:'dissolve',radius:160,strength:60},{fx:'glitch',radius:150,strength:60,gAmp:18}]},
-  scan:{d:'Полосы развёртки (сканлайны) поверх всего фона.',ex:[{}, {size:10,op:50,th:4}]},
-  vignette:{d:'Затемнение или цветное свечение краёв экрана.',ex:[{}, {op:40,color:'#ff4ecd'}]},
+  cursor:{d:'Эффект под курсором: линза-капля, растворение, глитч, фонарик, инверсия + объект на курсоре. Работает поверх остальных слоёв, в примере движется по кругу.',base:[['grid',{op:80,color:'#8a5cff',neonColor:'#ff4ecd'}]],ex:[{fx:'dissolve',radius:160,strength:60},{fx:'glitch',radius:150,strength:60,gAmp:18}]},
+  scan:{d:'Полосы развёртки (сканлайны) поверх всего фона — как на старом ТВ.',base:[['grid',{op:60,color:'#3ef06b'}]],ex:[{}, {size:10,op:50,th:4}]},
+  vignette:{d:'Затемнение (или цветное свечение) краёв экрана. Накладывается сверху на остальные слои.',base:[['grid',{op:80,color:'#22d3ee'}]],ex:[{}, {op:40,color:'#ff4ecd'}]},
   particles:{d:'Сеть из частиц. Статика (SVG) или живой интерактив (canvas) — частицы реагируют на курсор.',ex:[{count:80,distance:160,color:'#00ffc8',fs:4},{count:120,distance:120,color:'#ff4ecd',fs:3}]},
-  crt:{d:'Эффект старого монитора: сканлайны + периодический глитч-дрожание сигнала.',ex:[{}, {scanlineHeight:3,glitchFrequency:2}]},
-  spotlight:{d:'Прожектор: световое пятно (или тень) за курсором.',ex:[{}, {radius:320,soft:60}]},
+  crt:{d:'Эффект старого монитора: тонкие сканлайны по всему экрану + периодическое глитч-дрожание картинки, как при плохом сигнале.',base:[['grid',{op:60,color:'#3ef06b'}]],ex:[{}, {scanlineHeight:3,glitchFrequency:2}]},
+  spotlight:{d:'Прожектор: световое пятно (или тень) движется за курсором. В примере пятно ездит по кругу.',base:[['grid',{op:70,color:'#8a5cff'}]],ex:[{radius:320,soft:60,invert:true}]},
   terminal:{d:'Матрица: падающие символы кода.',ex:[{}, {fs:32,color:'#22d3ee',op:80}]}
 };
 
@@ -176,7 +176,7 @@ function newLayer(t){
   };
   if(t==='dots'){b.size=36;b.size2=36;b.th=3}
   if(t==='stripes'){b.size=28;b.th=3;b.rot=45}
-  if(t==='waves'){b.size=70;b.size2=48;b.bend=16}
+  if(t==='waves'){b.size=70;b.size2=48;b.bend=22}
   if(t==='scan'){b.size=6;b.th=2;b.color='#000';b.op=30}
   if(t==='vignette'){b.color='#000';b.op=80}
   if(t==='symbols'){b.color='#3ef06b';b.neonColor='#1aff8c'}
@@ -456,8 +456,8 @@ function layerContent(Ly,i,uid,color,drift,suf,skipLive){
     for(var y=-300;y<=H+300;y+=Ly.size2)p+='M-400 '+y+' Q '+(W/2)+' '+(y+Ly.bend)+' '+(W+400)+' '+y+' ';
     b='<path d="'+p+'" stroke="'+color+'" stroke-width="'+Ly.th+'" fill="none">'+an('stroke')+'</path>';
   }else if(Ly.type==='waves'){
-    var p2='',wl=Math.max(20,Ly.size*2);
-    for(var y2=-200;y2<=H+200;y2+=Ly.size2){p2+='M-400 '+y2+' ';for(var x2=-400;x2<=W+400;x2+=40)p2+='L'+x2+' '+(y2+Math.sin(x2/wl*Math.PI*2)*Ly.bend).toFixed(1)+' '}
+    var p2='',wl=Math.max(20,Ly.size*2),b=Ly.bend,hw=b*.38;
+    for(var y2=-200;y2<=H+200;y2+=Ly.size2){p2+='M-400 '+y2.toFixed(1)+' ';for(var x2=-400;x2<=W+400;x2+=10){var ph=x2/wl*Math.PI*2;p2+='L'+x2+' '+(y2+Math.sin(ph)*b+Math.sin(ph*2.3)*hw).toFixed(1)+' '}}
     b='<path d="'+p2+'" stroke="'+color+'" stroke-width="'+Ly.th+'" fill="none" stroke-linejoin="round">'+an('stroke')+'</path>';
   }else if(Ly.type==='dots'){
     d='<pattern id="'+pid+'" width="'+Ly.size+'" height="'+Ly.size2+'" patternUnits="userSpaceOnUse"><circle cx="'+(Ly.size/2)+'" cy="'+(Ly.size2/2)+'" r="'+Ly.th+'" fill="'+color+'">'+an('fill')+'</circle></pattern>';
