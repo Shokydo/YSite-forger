@@ -76,7 +76,7 @@ function bindParticlesLive(root){
     for(var k=0;k<n;k++)root._plexP.push({x:rnd()*bw,y:rnd()*bh,vx:(rnd()-.5)*2,vy:(rnd()-.5)*2,r:(Ly.fs||3)*(.5+rnd()*.35)});
   }
   root._plex.P=root._plexP;
-  root._plex.o={cursorR:Ly.cursorR||150,strength:Ly.strength||50,lineOp:Ly.lineOp!=null?Ly.lineOp:.2,distance:Ly.distance||140,speed:Ly.speed!=null?Ly.speed:.4,max:4,cursor:Ly.cursor||'none',color:Ly.color||'#cccccc',rgb:rgbStr(Ly.color||'#cccccc')};
+  root._plex.o={cursorR:Ly.cursorR||150,strength:Ly.strength||50,lineOp:Ly.lineOp!=null?Ly.lineOp:.2,distance:Ly.distance||140,speed:Ly.speed!=null?Ly.speed:.4,max:4,cursor:Ly.cursor||'none',color:Ly.color||'#cccccc',rgb:rgbStr(Ly.color||'#cccccc'),linkPulse:Ly.linkPulse||0,linkPulseSpeed:Ly.linkPulseSpeed!=null?Ly.linkPulseSpeed:1.5,colorCycle:Ly.colorCycle||0,dotPulse:Ly.dotPulse||0};
   if(!root._plexRaf){
     var vis=true;
     document.addEventListener('visibilitychange',function(){vis=!document.hidden;});
@@ -85,7 +85,7 @@ function bindParticlesLive(root){
       if(vis&&cv2&&cx&&s&&s.P){
         var r=root.getBoundingClientRect(),d=window.devicePixelRatio||1;
         if(cv2.width!==Math.round(r.width*d)||cv2.height!==Math.round(r.height*d)){cv2.width=Math.round(r.width*d);cv2.height=Math.round(r.height*d);}
-        plexusFrame(cx,s.P,s.o,s.mouse,r.width,r.height,d);
+        plexusFrame(cx,s.P,s.o,s.mouse,r.width,r.height,d,performance.now()/1000);
       }
       root._plexRaf=requestAnimationFrame(frame);
     }
@@ -341,6 +341,12 @@ function renderLook(){
       +rw('lk','cursorR','Радиус курсора',50,400,1,Ly.cursorR)
       +rw('lk','strength','Сила',0,100,1,Ly.strength)
       +rw('lk','lineOp','Яркость линий',.05,.6,.05,Ly.lineOp)
+      +h4('Анимации сети')
+      +rw('lk','linkPulse','Пульс линий',0,100,1,Ly.linkPulse)
+      +rw('lk','linkPulseSpeed','Скорость пульса',.2,5,.1,Ly.linkPulseSpeed)
+      +rw('lk','dotPulse','Пульс точек',0,100,1,Ly.dotPulse)
+      +rw('lk','colorCycle','Цикл цвета',0,90,1,Ly.colorCycle)
+      +'<div class="hint">Работает в живом режиме (canvas). Цикл цвета — скорость смены оттенка, 0 = выкл</div>'
       +'<button class="btn sm" id="reroll">'+I.dice+' Перемешать</button>';
   }
 

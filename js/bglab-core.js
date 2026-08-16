@@ -86,7 +86,7 @@ function openPicker(anchor,get,set){
   if(!popEl){
     popEl=document.createElement('div');popEl.className='pop';
     popEl.innerHTML='<div class="sv" id="pSv"><div class="svdot"></div></div><div class="hue" id="pHue"><div class="huedot"></div></div><div class="cright"><input class="hex" id="pHex" spellcheck="false"><div class="csw" id="pSw"></div></div>';
-    document.body.appendChild(popEl);
+    (document.getElementById('bgApp')||document.body).appendChild(popEl);
     dragXY(popEl.querySelector('#pSv'),function(x,y){popCur.s=cl(x,0,1);popCur.v=cl(1-y,0,1);commitPop()});
     dragXY(popEl.querySelector('#pHue'),function(x){popCur.h=cl(x,0,1)*360;commitPop()});
     popEl.querySelector('#pHex').addEventListener('input',function(e){var v=sanHex(e.target.value);if(v){popCur=hexToHsv(v);commitPop(false)}});
@@ -139,6 +139,7 @@ function newLayer(t){
     size:64,size2:64,sync:false,th:2,bend:0,op:90,blur:0,rot:0,x:0,y:0,
     moveDir:'none',moveSpeed:30,
     live:false,cursor:'none',speed:.4,cursorR:150,strength:50,lineOp:.2,
+    linkPulse:0,linkPulseSpeed:1.5,colorCycle:0,dotPulse:0,
     pulse:false,pulseDuration:1.2,pulseInterval:0,pulseCurve:defCurve(),
     mpulse:false,mpulseDuration:1.2,mpulseInterval:0,mpulseCurve:defCurve(),
     breath:false,breathDur:3,breathAmp:15,breathInterval:0,
@@ -365,10 +366,21 @@ function rgbStr(hex){
   return parseInt(h.slice(0,2),16)+','+parseInt(h.slice(2,4),16)+','+parseInt(h.slice(4,6),16);
 }
 /* один кадр живого плексуса на canvas (редактор и экспорт) */
-function plexusFrame(ctx,P,o,mouse,cw,ch,dpr){
+function plexusFrame(ctx,P,o,mouse,cw,ch,dpr,t){
   ctx.setTransform(dpr||1,0,0,dpr||1,0,0);
   ctx.clearRect(0,0,cw,ch);
-  var rgb=o.rgb||'204,204,204',i,j,d2;
+  t=t||0;
+  var col=o.color||'#cccccc',rgb=o.rgb||'204,204,204',i,j,d2;
+  if(o.colorCycle>0){
+    var bb=hexToHsv(col);
+    bb.h=(bb.h+t*o.colorCycle)%360;
+    var rc=hsvToRgb(bb.h,bb.s,bb.v);
+    col='rgb('+Math.round(rc[0])+','+Math.round(rc[1])+','+Math.round(rc[2])+')';
+    rgb=Math.round(rc[0])+','+Math.round(rc[1])+','+Math.round(rc[2]);
+  }
+  var amp=cl((o.linkPulse||0)/100,0,1),lps=o.linkPulseSpeed!=null?o.linkPulseSpeed:1.5;
+  var lf=(1-amp)+amp*(.5+.5*Math.sin(t*lps*Math.PI*2));
+  var dp=cl((o.dotPulse||0)/100,0,1),radF=1+dp*.35*Math.sin(t*2.4);
   P.forEach(function(p){
     var dx=p.x-mouse.x,dy=p.y-mouse.y,d=Math.hypot(dx,dy);
     if(d<o.cursorR&&d>.01){
@@ -386,7 +398,7 @@ function plexusFrame(ctx,P,o,mouse,cw,ch,dpr){
   for(i=0;i<P.length;i++)for(j=i+1;j<P.length;j++){
     d2=Math.hypot(P[i].x-P[j].x,P[i].y-P[j].y);
     if(d2<o.distance){
-      ctx.strokeStyle='rgba('+rgb+','+((1-d2/o.distance)*(o.lineOp||.2)).toFixed(3)+')';
+      ctx.strokeStyle='rgba('+rgb+','+((1-d2/o.distance)*(o.lineOp||.2)*lf).toFixed(3)+')';
       ctx.beginPath();ctx.moveTo(P[i].x,P[i].y);ctx.lineTo(P[j].x,P[j].y);ctx.stroke();
     }
   }
@@ -397,8 +409,8 @@ function plexusFrame(ctx,P,o,mouse,cw,ch,dpr){
       ctx.beginPath();ctx.moveTo(mouse.x,mouse.y);ctx.lineTo(p.x,p.y);ctx.stroke();
     }
   });
-  ctx.fillStyle=o.color||'#cccccc';
-  P.forEach(function(p){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();});
+  ctx.fillStyle=col;
+  P.forEach(function(p){ctx.beginPath();ctx.arc(p.x,p.y,p.r*radF,0,7);ctx.fill();});
 }
 function genTerminal(Ly,color,uid,i,suf){
   var ch=(Ly.chars&&Ly.chars.length)?Ly.chars:'0123456789ABCDEF';
