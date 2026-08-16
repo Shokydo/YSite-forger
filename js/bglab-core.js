@@ -139,7 +139,7 @@ function newLayer(t){
     size:64,size2:64,sync:false,th:2,bend:0,op:90,blur:0,rot:0,x:0,y:0,
     moveDir:'none',moveSpeed:30,
     live:false,cursor:'none',speed:.4,cursorR:150,strength:50,lineOp:.2,
-    linkPulse:0,linkPulseSpeed:1.5,colorCycle:0,dotPulse:0,
+    linkPulse:0,linkPulseSpeed:1.5,dotPulse:0,
     pulse:false,pulseDuration:1.2,pulseInterval:0,pulseCurve:defCurve(),
     mpulse:false,mpulseDuration:1.2,mpulseInterval:0,mpulseCurve:defCurve(),
     breath:false,breathDur:3,breathAmp:15,breathInterval:0,
@@ -371,13 +371,6 @@ function plexusFrame(ctx,P,o,mouse,cw,ch,dpr,t){
   ctx.clearRect(0,0,cw,ch);
   t=t||0;
   var col=o.color||'#cccccc',rgb=o.rgb||'204,204,204',i,j,d2;
-  if(o.colorCycle>0){
-    var bb=hexToHsv(col);
-    bb.h=(bb.h+t*o.colorCycle)%360;
-    var rc=hsvToRgb(bb.h,bb.s,bb.v);
-    col='rgb('+Math.round(rc[0])+','+Math.round(rc[1])+','+Math.round(rc[2])+')';
-    rgb=Math.round(rc[0])+','+Math.round(rc[1])+','+Math.round(rc[2]);
-  }
   var amp=cl((o.linkPulse||0)/100,0,1),lps=o.linkPulseSpeed!=null?o.linkPulseSpeed:1.5;
   var lf=(1-amp)+amp*(.5+.5*Math.sin(t*lps*Math.PI*2));
   var dp=cl((o.dotPulse||0)/100,0,1),radF=1+dp*.35*Math.sin(t*2.4);
@@ -675,9 +668,9 @@ var PRESETS=[
 
   /* новые механики: живой плексус, анимации сети, режимы курсора */
   {name:'Живой плексус',st:function(){return S({layers:[L('particles',{live:true,cursor:'grab+repel',count:120,distance:140,fs:3,speed:.45,cursorR:190,strength:60,lineOp:.28,linkPulse:55,linkPulseSpeed:1.2,color:'#00ffc8'}),L('vignette',{})]})}},
-  {name:'Радужная сеть',st:function(){return S({bgs:[{on:true,color:'#2a0a4a',x:50,y:0,size:80,op:70},{on:false},{on:false},{on:false}],layers:[L('particles',{live:true,cursor:'attract',count:130,distance:150,fs:3,speed:.6,cursorR:220,strength:55,lineOp:.3,colorCycle:36,dotPulse:60,color:'#ff4ecd'}),L('vignette',{})]})}},
+  {name:'Радужная сеть',st:function(){return S({bgs:[{on:true,color:'#2a0a4a',x:50,y:0,size:80,op:70},{on:false},{on:false},{on:false}],layers:[L('particles',{live:true,cursor:'attract',count:130,distance:150,fs:3,speed:.6,cursorR:220,strength:55,lineOp:.3,dotPulse:60,color:'#ff4ecd'}),L('vignette',{})]})}},
   {name:'Лазерный шторм',st:function(){return S({layers:[L('particles',{live:true,cursor:'repel',count:150,distance:110,fs:4,speed:.9,cursorR:200,strength:70,lineOp:.4,linkPulse:90,linkPulseSpeed:2.2,color:'#ff2e9a'}),L('scan',{size:6,th:2}),L('vignette',{})]})}},
-  {name:'Кибер-медуза',st:function(){return S({bgs:[{on:true,color:'#061030',x:50,y:100,size:90,op:70},{on:false},{on:false},{on:false}],layers:[L('particles',{live:true,cursor:'grab+attract',count:90,distance:170,fs:4.5,speed:.3,cursorR:230,strength:70,lineOp:.3,dotPulse:85,colorCycle:12,color:'#8a5cff'}),L('vignette',{})]})}},
+  {name:'Кибер-медуза',st:function(){return S({bgs:[{on:true,color:'#061030',x:50,y:100,size:90,op:70},{on:false},{on:false},{on:false}],layers:[L('particles',{live:true,cursor:'grab+attract',count:90,distance:170,fs:4.5,speed:.3,cursorR:230,strength:70,lineOp:.3,dotPulse:85,color:'#8a5cff'}),L('vignette',{})]})}},
   {name:'Ядро',st:function(){return S({bgs:[{on:true,color:'#3d0a12',x:50,y:50,size:60,op:60},{on:false},{on:false},{on:false}],layers:[L('particles',{live:true,cursor:'attract',count:70,distance:190,fs:5,speed:.35,cursorR:280,strength:80,lineOp:.3,dotPulse:50,linkPulse:40,linkPulseSpeed:.8,color:'#ffd166'}),L('vignette',{})]})}},
   {name:'Техно-сеть',st:function(){return S({layers:[L('grid',{size:80,size2:80,op:22,color:'#3ef06b'}),L('particles',{live:true,cursor:'grab',count:80,distance:120,fs:3,speed:.4,cursorR:170,strength:50,lineOp:.25,linkPulse:45,color:'#3ef06b'}),L('vignette',{})]})}}
 ];

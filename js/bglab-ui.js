@@ -76,7 +76,7 @@ function bindParticlesLive(root){
     for(var k=0;k<n;k++)root._plexP.push({x:rnd()*bw,y:rnd()*bh,vx:(rnd()-.5)*2,vy:(rnd()-.5)*2,r:(Ly.fs||3)*(.5+rnd()*.35)});
   }
   root._plex.P=root._plexP;
-  root._plex.o={cursorR:Ly.cursorR||150,strength:Ly.strength||50,lineOp:Ly.lineOp!=null?Ly.lineOp:.2,distance:Ly.distance||140,speed:Ly.speed!=null?Ly.speed:.4,max:4,cursor:Ly.cursor||'none',color:Ly.color||'#cccccc',rgb:rgbStr(Ly.color||'#cccccc'),linkPulse:Ly.linkPulse||0,linkPulseSpeed:Ly.linkPulseSpeed!=null?Ly.linkPulseSpeed:1.5,colorCycle:Ly.colorCycle||0,dotPulse:Ly.dotPulse||0};
+  root._plex.o={cursorR:Ly.cursorR||150,strength:Ly.strength||50,lineOp:Ly.lineOp!=null?Ly.lineOp:.2,distance:Ly.distance||140,speed:Ly.speed!=null?Ly.speed:.4,max:4,cursor:Ly.cursor||'none',color:Ly.color||'#cccccc',rgb:rgbStr(Ly.color||'#cccccc'),linkPulse:Ly.linkPulse||0,linkPulseSpeed:Ly.linkPulseSpeed!=null?Ly.linkPulseSpeed:1.5,dotPulse:Ly.dotPulse||0};
   if(!root._plexRaf){
     var vis=true;
     document.addEventListener('visibilitychange',function(){vis=!document.hidden;});
@@ -345,8 +345,7 @@ function renderLook(){
       +rw('lk','linkPulse','Пульс линий',0,100,1,Ly.linkPulse)
       +rw('lk','linkPulseSpeed','Скорость пульса',.2,5,.1,Ly.linkPulseSpeed)
       +rw('lk','dotPulse','Пульс точек',0,100,1,Ly.dotPulse)
-      +rw('lk','colorCycle','Цикл цвета',0,90,1,Ly.colorCycle)
-      +'<div class="hint">Работает в живом режиме (canvas). Цикл цвета — скорость смены оттенка, 0 = выкл</div>'
+      +'<div class="hint">Работает в живом режиме (canvas). Цвет меняйте драгом кубика цвета</div>'
       +'<button class="btn sm" id="reroll">'+I.dice+' Перемешать</button>';
   }
 
