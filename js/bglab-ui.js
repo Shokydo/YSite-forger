@@ -658,6 +658,25 @@ function closeGroupEditor(){ $('bgGroupOverlay').classList.add('hidden'); }
   var ov=$('bgGroupOverlay');
   $('bgGroupClose').onclick=closeGroupEditor;
   $('bgGroupDone').onclick=closeGroupEditor;
+  $('bgGroupDel').onclick=async function(){
+    var Ly=state&&state.layers[sel];
+    if(grpCtx.kind==='el'){
+      if(!Ly||Ly.type!=='symbols'||!Ly.elems||!Ly.elems[grpCtx.ei])return;
+      var ok=await Dialogs.confirm('Удалить элемент #'+(grpCtx.ei+1)+'?',{okText:'Удалить',danger:true});
+      if(!ok)return;
+      Ly.elems.splice(grpCtx.ei,1);
+      closeGroupEditor();
+      renderLook(); reqRender();
+    }else{
+      if(!Ly)return;
+      var ok2=await Dialogs.confirm('Удалить слой '+(sel+1)+'?',{okText:'Удалить',danger:true});
+      if(!ok2)return;
+      state.layers.splice(sel,1);
+      sel=state.layers.length?cl(sel,0,state.layers.length-1):'bg';
+      closeGroupEditor();
+      refresh();
+    }
+  };
   ov.addEventListener('mousedown',function(e){ if(e.target.id==='bgGroupOverlay')closeGroupEditor(); });
   document.addEventListener('keydown',function(e){
     if(e.key!=='Escape')return;

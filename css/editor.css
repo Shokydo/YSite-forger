@@ -2670,6 +2670,10 @@ textarea {
   padding: 14px;
 }
 
+#bgGroupOverlay .gwin-btns {
+  justify-content: flex-end;
+}
+
 #bgGroupOverlay #bgGroupDone {
   align-self: flex-end;
 }
