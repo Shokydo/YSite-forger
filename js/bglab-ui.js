@@ -165,6 +165,8 @@ function renderList(){
         if(a==='rm'){ state.layers.splice(i,1); sel=state.layers.length?cl(sel,0,state.layers.length-1):'bg'; }
         refresh();
       };
+      d.onmouseenter=function(){ tipShow(Ly.type,d); };
+      d.onmouseleave=tipHide;
       listEl.appendChild(d);
     })(i);
   }
@@ -182,23 +184,22 @@ $('bgaddBtn').onclick=function(){
     order.forEach(function(t){
       var c=document.createElement('button');
       c.className='add-type';
-      c.title=(LAYER_INFO[t]&&LAYER_INFO[t].d)||'';
       c.innerHTML='<span class="add-type-ic">'+I[t]+'</span><b>'+NAMES[t]+'</b>';
       c.onclick=function(){
-        layerTipHide();
+        tipHide();
         state.layers.push(newLayer(t));
         sel=state.layers.length-1;
         ov.classList.add('hidden');
         refresh();
       };
-      c.onmouseenter=function(){ layerTipShow(t,c); };
-      c.onmouseleave=layerTipHide;
+      c.onmouseenter=function(){ tipShow(t,c); };
+      c.onmouseleave=tipHide;
       box.appendChild(c);
     });
   }
   ov.classList.remove('hidden');
 };
-/* превью-подсказка: пример слоя при наведении на карточку */
+/* превью-подсказка: описание + примеры при наведении */
 var tipEl=null;
 function svgAnim(el,tag,attrs){
   var a=document.createElementNS('http://www.w3.org/2000/svg',tag);
@@ -228,29 +229,35 @@ function helpState(t,ex){
   layers.push(L(t,ex||{}));
   return{bgBase:'#0d0d0d',bgs:[{on:false,color:'#000',x:50,y:50,size:60,op:0}],layers:layers};
 }
-function helpExample(t,ex,i){
-  var div=document.createElement('div');
-  div.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid slice">'+buildSVG(helpState(t,ex),'hp'+t+i)+'</svg>';
-  if(t==='cursor'||t==='spotlight')injectPreviewMove(div.querySelector('svg'));
-  return div;
-}
-function layerTipShow(t,el){
-  if(!tipEl){ tipEl=document.createElement('div'); tipEl.id='bgAddTip'; document.body.appendChild(tipEl); }
-  var ex=(LAYER_INFO[t]&&LAYER_INFO[t].ex&&LAYER_INFO[t].ex[0])||{};
-  var hd=helpExample(t,ex,'t');
-  tipEl.innerHTML='<b>'+NAMES[t]+'</b>';
-  tipEl.appendChild(hd.firstChild);
+function tipShow(t,anchor){
+  if(!tipEl){ tipEl=document.createElement('div'); tipEl.id='bgTip'; document.body.appendChild(tipEl); }
+  var info=LAYER_INFO[t]||{d:'',ex:[]};
+  var exs=(info.ex&&info.ex.length?info.ex:[{}]);
+  var h='<b>'+NAMES[t]+'</b>';
+  if(info.d)h+='<div class="tip-desc">'+info.d+'</div>';
+  h+='<div class="tip-exs">';
+  exs.forEach(function(ex,i){
+    h+='<div class="tip-ex"><svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid slice">'+buildSVG(helpState(t,ex),'tp'+t+i)+'</svg><span>'+(i===0?'обычный':'вариант '+(i+1))+'</span></div>';
+  });
+  h+='</div>';
+  tipEl.innerHTML=h;
+  if(t==='cursor'||t==='spotlight')[].slice.call(tipEl.querySelectorAll('svg')).forEach(injectPreviewMove);
   tipEl.style.display='block';
-  var r=el.getBoundingClientRect(),vw=innerWidth||document.documentElement.clientWidth;
-  var left=r.right+12, top=Math.max(8,r.top-60);
-  if(left+232>vw)left=r.left-232;
+  var r=anchor.getBoundingClientRect(),vw=innerWidth||document.documentElement.clientWidth,vh=innerHeight||document.documentElement.clientHeight;
+  var tw=tipEl.offsetWidth,th=tipEl.offsetHeight;
+  var left=r.right+12;
+  if(left+tw>vw-8)left=r.left-tw-12;
+  if(left<8)left=8;
+  var top=r.top-60;
+  if(top+th>vh-8)top=Math.max(8,vh-th-8);
+  if(top<8)top=8;
   tipEl.style.left=left+'px';
   tipEl.style.top=top+'px';
 }
-function layerTipHide(){ if(tipEl)tipEl.style.display='none'; }
+function tipHide(){ if(tipEl)tipEl.style.display='none'; }
 (function(){
   var ov=$('bgAddOverlay'); if(!ov)return;
-  function close(){ ov.classList.add('hidden'); layerTipHide(); }
+  function close(){ ov.classList.add('hidden'); tipHide(); }
   var cl=$('bgAddClose'); if(cl)cl.onclick=close;
   var cn=$('bgAddCancel'); if(cn)cn.onclick=close;
   ov.addEventListener('mousedown',function(e){ if(e.target.id==='bgAddOverlay')close(); });
@@ -322,7 +329,7 @@ function renderLook(){
   var Ly=state.layers[sel];
   if(!Ly){ lookEl.innerHTML='<div class="crow" style="color:#999">Нет слоёв</div>'; return; }
   lookTitle.textContent='Слой · вид — '+NAMES[Ly.type]+' '+(sel+1);
-  var h='<button class="btn sm" id="helpOpen" style="width:100%;margin-bottom:10px">'+I.info+' Что делает слой — примеры</button>';
+  var h='<div class="crow help-hint">'+I.info+' Наведи на слой в списке — описание и примеры</div>';
 
   /* картинка */
   if(Ly.type==='image'){
@@ -554,37 +561,7 @@ function renderLook(){
     }
   });
   bindColors(lookEl,function(){ return Ly; });
-  var hp=lookEl.querySelector('#helpOpen');
-  if(hp)hp.onclick=openLayerHelp;
 }
-
-/* окно справки по выбранному слою: что делает + примеры */
-function openLayerHelp(){
-  var ov=$('bgHelpOverlay'); if(!ov)return;
-  var Ly=state&&state.layers[sel];
-  if(!Ly)return;
-  var t=Ly.type, info=LAYER_INFO[t]||{d:'',ex:[]};
-  $('bgHelpTitle').textContent=NAMES[t]+' — что делает слой';
-  $('bgHelpDesc').textContent=info.d;
-  var box=$('bgHelpExamples');
-  box.innerHTML='';
-  (info.ex&&info.ex.length?info.ex:[{}]).forEach(function(ex,i){
-    var d=document.createElement('div'); d.className='help-ex';
-    d.appendChild(helpExample(t,ex,i));
-    var lb=document.createElement('div'); lb.className='help-ex-lb';
-    lb.textContent=i===0?'обычный':'вариант '+(i+1);
-    d.appendChild(lb);
-    box.appendChild(d);
-  });
-  ov.classList.remove('hidden');
-}
-(function(){
-  var ov=$('bgHelpOverlay'); if(!ov)return;
-  function close(){ ov.classList.add('hidden'); }
-  var cl=$('bgHelpClose'); if(cl)cl.onclick=close;
-  var dn=$('bgHelpDone'); if(dn)dn.onclick=close;
-  ov.addEventListener('mousedown',function(e){ if(e.target.id==='bgHelpOverlay')close(); });
-})();
 
 /* ---------- 12. Редактор кривых пульсации ---------- */
 function makeCurve(box,pts,cb){
@@ -803,8 +780,8 @@ function renderGroupPreview(){
   try{
     var t='<svg viewBox="0 0 100 100"><g transform="translate(50 50)">'+groupContent(g,100,'#fff',false,function(p,i){
       var b=gpartBox(p);
-      var tr='transform="translate('+((p.x!=null?p.x:50)-50).toFixed(2)+' '+((p.y!=null?p.y:50)-50).toFixed(2)+') rotate('+(p.rot||0)+') scale('+(p.sx!=null?p.sx:1)+' '+(p.sy!=null?p.sy:1)+')"';
-      var hit='<rect x="'+(-b.rx)+'" y="'+(-b.ry)+'" width="'+(b.rx*2)+'" height="'+(b.ry*2)+'" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.25)" '+tr+'/>';
+      var tr='transform="translate('+(p.x!=null?p.x:50).toFixed(2)+' '+(p.y!=null?p.y:50).toFixed(2)+') rotate('+(p.rot||0)+') scale('+(p.sx!=null?p.sx:1)+' '+(p.sy!=null?p.sy:1)+')"';
+      var hit='<rect x="'+(-b.rx)+'" y="'+(-b.ry)+'" width="'+(b.rx*2)+'" height="'+(b.ry*2)+'" fill="transparent" '+tr+'/>';
       var post='</g>';
       if(i===grpCtx.selPart)post='<rect x="'+(-b.rx)+'" y="'+(-b.ry)+'" width="'+(b.rx*2)+'" height="'+(b.ry*2)+'" fill="none" stroke="#ffffff" stroke-width="0.7" stroke-dasharray="2 1.6" '+tr+'/>'+post;
       return ['<g data-gi="'+i+'" style="cursor:pointer">'+hit,post];
@@ -958,8 +935,6 @@ function closeGroupEditor(){ $('bgGroupOverlay').classList.add('hidden'); }
     if(e.key==='Escape'){
       var aov=$('bgAddOverlay');
       if(aov&&!aov.classList.contains('hidden')){ aov.classList.add('hidden'); return; }
-      var hov=$('bgHelpOverlay');
-      if(hov&&!hov.classList.contains('hidden')){ hov.classList.add('hidden'); return; }
       var ov2=$('bgGroupOverlay');
       if(ov2&&!ov2.classList.contains('hidden'))closeGroupEditor();
       return;
