@@ -157,7 +157,7 @@ function newLayer(t){
     neon:!['vignette','scan','image','cursor'].includes(t),
     color:'#ffffff',neonColor:'#ffffff',
     size:64,size2:64,sync:false,th:2,bend:0,op:90,blur:0,rot:0,x:0,y:0,
-    moveDir:'none',moveSpeed:30,
+    moveDir:'none',moveSpeed:30,moveAng:0,
     live:false,cursor:'none',speed:.4,cursorR:150,strength:50,lineOp:.2,
     linkPulse:0,linkPulseSpeed:1.5,dotPulse:0,
     pulse:false,pulseDuration:1.2,pulseInterval:0,pulseCurve:defCurve(),
@@ -596,6 +596,7 @@ function buildSVG(st,uid,skipLive){
           var dx=0,dy=0;
           if(Ly.moveDir==='up')dy=-H;if(Ly.moveDir==='down')dy=H;
           if(Ly.moveDir==='left')dx=-W;if(Ly.moveDir==='right')dx=W;
+          if(Ly.moveDir==='ang'){var rad=Ly.moveAng*Math.PI/180,am=Math.max(W,H);dx=Math.cos(rad)*am;dy=Math.sin(rad)*am}
           var du=(300/Ly.moveSpeed)/(1+g*.6),nm=uid+'m'+i+'_'+g;
           css+='@keyframes '+nm+'{to{transform:translate('+dx+'px,'+dy+'px)}}';
           mAn='animation:'+nm+' '+du.toFixed(2)+'s linear infinite';
@@ -616,6 +617,7 @@ function buildSVG(st,uid,skipLive){
         var pp=mvFor(Ly),dx2=0,dy2=0;
         if(Ly.moveDir==='up')dy2=-pp[1];if(Ly.moveDir==='down')dy2=pp[1];
         if(Ly.moveDir==='left')dx2=-pp[0];if(Ly.moveDir==='right')dx2=pp[0];
+        if(Ly.moveDir==='ang'){var rad=Ly.moveAng*Math.PI/180,am=Math.max(W,H);dx2=Math.cos(rad)*am;dy2=Math.sin(rad)*am}
         css+='@keyframes '+uid+'m'+i+'{to{transform:translate('+dx2+'px,'+dy2+'px)}}';
         ans.push(uid+'m'+i+' '+(60/Ly.moveSpeed).toFixed(2)+'s linear infinite');
       }

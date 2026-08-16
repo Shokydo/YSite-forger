@@ -20,7 +20,7 @@
   --primary-hover: #e0e0e0;
   --primary-light: #2a2a2a;
   --danger: #ff4444;
-  --success: #44ff44;
+  --success: #cccccc;
   --radius: 8px;
   --radius-sm: 6px;
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
@@ -2612,8 +2612,8 @@ textarea {
 }
 
 #bgAddOverlay .add-type:hover {
-  border-color: #4a9eff;
-  background: #1c1f24;
+  border-color: #ffffff;
+  background: #1f1f1f;
 }
 
 #bgAddOverlay .add-type-ic {
@@ -2809,7 +2809,7 @@ textarea {
 
 #bgGroupOverlay .grow-row input[type="range"] {
   width: 100%;
-  accent-color: #4a9eff;
+  accent-color: #ffffff;
 }
 
 #bgGroupOverlay .grow-row input.num,
@@ -2861,9 +2861,9 @@ textarea {
 }
 
 #bgGroupOverlay .gchip.active {
-  border-color: #4a9eff;
+  border-color: #ffffff;
   color: #fff;
-  background: rgba(74, 158, 255, 0.12);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 #bgGroupOverlay .gchip-ic {
@@ -2890,6 +2890,23 @@ textarea {
 #bgGroupOverlay .gpart-panel-head .btn {
   padding: 3px 7px;
   font-size: 12px;
+}
+
+#bgGroupOverlay .btn.sm {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+#bgGroupOverlay svg.ic {
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+  vertical-align: -2px;
+  flex: none;
+}
+
+#bgGroupOverlay .btn.sm svg.ic {
+  vertical-align: 0;
 }
 
 #bgGroupOverlay .gpart-empty {

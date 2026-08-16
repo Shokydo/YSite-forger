@@ -622,9 +622,10 @@ function renderAnim(){
   if(!Ly){ animEl.innerHTML=''; return; }
   if(Ly.type==='cursor'){ animEl.innerHTML='<div class="hint">Курсор-FX живёт от мыши. Эффект — на слои ниже, кроме исключённых.</div>'; return; }
 
-  var dirs=[['none','Нет'],['up','Вверх'],['down','Вниз'],['left','Влево'],['right','Вправо']];
+  var dirs=[['none','Нет'],['up','Вверх'],['down','Вниз'],['left','Влево'],['right','Вправо'],['ang','Свой угол']];
   var h=h4('Движение (одно)')
     +'<div class="pills">'+dirs.map(function(d){ return '<button data-mv="'+d[0]+'" class="'+(Ly.moveDir===d[0]?'on':'')+'">'+d[1]+'</button>'; }).join('')+'</div>'
+    +(Ly.moveDir==='ang'?rw('lk','moveAng','Угол движения, °',0,360,1,Ly.moveAng):'')
     +rw('lk','moveSpeed','Скорость движения',1,100,1,Ly.moveSpeed)
     +h4('Дыхание')+ck('lk','breath','Включено',Ly.breath)
     +rw('lk','breathDur','Длительность, сек',.5,10,.1,Ly.breathDur)
@@ -792,7 +793,7 @@ function openGroupEditor(ei){
 /* превью 0..100: каждая часть в <g data-gi>, выбранная подсвечена */
 function gpartBox(p){
   var fs=p.fs!=null?p.fs:20;
-  return {rx:1+(fs/2)*(p.sx!=null?p.sx:1),ry:1+(fs*0.65/2)*(p.sy!=null?p.sy:1)};
+  return {rx:1+(fs*0.7/2)*(p.sx!=null?p.sx:1),ry:1+(fs*0.8/2)*(p.sy!=null?p.sy:1)};
 }
 function renderGroupPreview(){
   var host=grpHost(), box=$('bgGroupPreview');
@@ -803,9 +804,9 @@ function renderGroupPreview(){
     var t='<svg viewBox="0 0 100 100"><g transform="translate(50 50)">'+groupContent(g,100,'#fff',false,function(p,i){
       var b=gpartBox(p);
       var tr='transform="translate('+((p.x!=null?p.x:50)-50).toFixed(2)+' '+((p.y!=null?p.y:50)-50).toFixed(2)+') rotate('+(p.rot||0)+') scale('+(p.sx!=null?p.sx:1)+' '+(p.sy!=null?p.sy:1)+')"';
-      var hit='<rect x="'+(-b.rx)+'" y="'+(-b.ry)+'" width="'+(b.rx*2)+'" height="'+(b.ry*2)+'" fill="rgba(74,158,255,0.05)" stroke="rgba(74,158,255,0.3)" '+tr+'/>';
+      var hit='<rect x="'+(-b.rx)+'" y="'+(-b.ry)+'" width="'+(b.rx*2)+'" height="'+(b.ry*2)+'" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.25)" '+tr+'/>';
       var post='</g>';
-      if(i===grpCtx.selPart)post='<rect x="'+(-b.rx)+'" y="'+(-b.ry)+'" width="'+(b.rx*2)+'" height="'+(b.ry*2)+'" fill="none" stroke="#4a9eff" stroke-width="0.7" stroke-dasharray="2 1.6" '+tr+'/>'+post;
+      if(i===grpCtx.selPart)post='<rect x="'+(-b.rx)+'" y="'+(-b.ry)+'" width="'+(b.rx*2)+'" height="'+(b.ry*2)+'" fill="none" stroke="#ffffff" stroke-width="0.7" stroke-dasharray="2 1.6" '+tr+'/>'+post;
       return ['<g data-gi="'+i+'" style="cursor:pointer">'+hit,post];
     })+'</svg>';
     var svg=box.querySelector('svg');
