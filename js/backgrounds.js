@@ -69,9 +69,9 @@ const BackgroundsLib = {
   },
 
   /* ---------- Сборка SVG/HTML ---------- */
-  svgFor(state, uid) {
+  svgFor(state, uid, skipLive) {
     if (!state) return '';
-    return '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid slice">' + buildSVG(state, uid) + '</svg>';
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid slice">' + buildSVG(state, uid, skipLive) + '</svg>';
   },
 
   /* Встраиваемый слой фона (для секции / страницы) */
@@ -83,13 +83,16 @@ const BackgroundsLib = {
   /* Полный HTML-файл фона (как копия из BG·LAB) */
   htmlFor(state) {
     if (!state) return '';
-    return '<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Мой фон</title><style>*{margin:0;box-sizing:border-box}html,body{height:100%}.bg{position:fixed;inset:0;z-index:-1;overflow:hidden}.bg svg{width:100%;height:100%;display:block}</style></head><body><div class="bg">' + this.svgFor(state, 'e') + '</div>' + this.cursorScript() + '</body></html>';
+    const cfg = this.particlesCfg(state);
+    const px = cfg ? ' data-plex=\'' + esc(JSON.stringify(cfg)) + '\'' : '';
+    const skip = cfg ? true : false;
+    return '<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Мой фон</title><style>*{margin:0;box-sizing:border-box}html,body{height:100%}.bg{position:fixed;inset:0;z-index:-1;overflow:hidden}.bg svg{width:100%;height:100%;display:block}</style></head><body><div class="bg"' + px + '>' + this.svgFor(state, 'e', skip) + '</div>' + this.cursorScript() + (cfg ? this.particlesScript() : '') + '</body></html>';
   },
 
-  /* CSS-правило для фона в виде data-uri */
+  /* CSS-правило для фона в виде data-uri (живой режим невозможен — статика) */
   cssFor(state) {
     if (!state) return '';
-    const svg = this.svgFor(state, 'e');
+    const svg = this.svgFor(state, 'e', false);
     return '.bg{position:fixed;inset:0;background:' + (state.bgBase || '#0a0a0a') + ' url("data:image/svg+xml,' + encodeURIComponent(svg) + '") center/cover no-repeat}';
   },
 
@@ -119,6 +122,46 @@ const BackgroundsLib = {
   },
 
   /* Есть ли в состоянии слой-курсор */
+
+  /* Конфиг первого живого particles-слоя или null */
+  particlesCfg(state) {
+    if (!state || !state.layers) return null;
+    for (let i = 0; i < state.layers.length; i++) {
+      const l = state.layers[i];
+      if (l && l.type === 'particles' && l.visible !== false && l.live) {
+        return {
+          color: l.color || '#cccccc',
+          count: l.count || 140,
+          distance: l.distance || 130,
+          speed: l.speed != null ? l.speed : 0.4,
+          cursorR: l.cursorR || 150,
+          strength: l.strength || 50,
+          lineOp: l.lineOp != null ? l.lineOp : 0.2,
+          cursor: l.cursor || 'none'
+        };
+      }
+    }
+    return null;
+  },
+
+  /* Скрипт живого плексуса для вставки в экспортируемые HTML */
+  particlesScript() {
+    const fn = String(plexusFrame).replace(/<\/script>/g, '<\\/script>');
+    return '<script>(function(){\n'
+      + 'function rgbStr(h){h=String(h||"#cccccc").replace("#","");if(h.length===3)h=h.split("").map(function(c){return c+c}).join("");if(h.length<6)return "204,204,204";return parseInt(h.slice(0,2),16)+","+parseInt(h.slice(2,4),16)+","+parseInt(h.slice(4,6),16)}\n'
+      + 'var PLEX=' + fn + '\n'
+      + 'var bg=document.querySelector(".bg[data-plex]");if(!bg)return;\n'
+      + 'var o=JSON.parse(bg.getAttribute("data-plex"));o.max=4;o.rgb=rgbStr(o.color);\n'
+      + 'var cv=document.createElement("canvas");cv.style.cssText="position:absolute;inset:0;width:100%;height:100%;pointer-events:none";bg.appendChild(cv);\n'
+      + 'var ctx=cv.getContext("2d"),P=[],mouse={x:-1e5,y:-1e5},r0=bg.getBoundingClientRect(),d0=window.devicePixelRatio||1;\n'
+      + 'cv.width=Math.max(1,Math.round(r0.width*d0));cv.height=Math.max(1,Math.round(r0.height*d0));\n'
+      + 'for(var k=0;k<o.count;k++)P.push({x:Math.random()*Math.max(400,r0.width),y:Math.random()*Math.max(300,r0.height),vx:(Math.random()-.5)*2,vy:(Math.random()-.5)*2,r:1+Math.random()*1.5});\n'
+      + 'var vis=true;document.addEventListener("visibilitychange",function(){vis=!document.hidden});\n'
+      + 'addEventListener("pointermove",function(e){mouse.x=e.clientX;mouse.y=e.clientY});\n'
+      + 'addEventListener("pointerleave",function(){mouse.x=-1e5;mouse.y=-1e5});\n'
+      + '(function f(){if(vis){var r=bg.getBoundingClientRect(),d=window.devicePixelRatio||1;if(cv.width!==Math.round(r.width*d)||cv.height!==Math.round(r.height*d)){cv.width=Math.round(r.width*d);cv.height=Math.round(r.height*d)}PLEX(ctx,P,o,mouse,r.width,r.height,d)}requestAnimationFrame(f)})();\n'
+      + '})();<\/script>';
+  },
   hasCursorLayer(state) {
     if (!state || !state.layers) return false;
     return state.layers.some(Ly => Ly && Ly.type === 'cursor' && Ly.visible !== false);

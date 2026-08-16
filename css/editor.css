@@ -2043,6 +2043,14 @@ textarea {
   height: 100%;
 }
 
+#bgApp #bgstage canvas.plex-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
 #bgApp #bgprops {
   width: 340px;
   flex: none;

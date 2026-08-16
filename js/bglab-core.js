@@ -138,6 +138,7 @@ function newLayer(t){
     color:'#ffffff',neonColor:'#ffffff',
     size:64,size2:64,sync:false,th:2,bend:0,op:90,blur:0,rot:0,x:0,y:0,
     moveDir:'none',moveSpeed:30,
+    live:false,cursor:'none',speed:.4,cursorR:150,strength:50,lineOp:.2,
     pulse:false,pulseDuration:1.2,pulseInterval:0,pulseCurve:defCurve(),
     mpulse:false,mpulseDuration:1.2,mpulseInterval:0,mpulseCurve:defCurve(),
     breath:false,breathDur:3,breathAmp:15,breathInterval:0,
@@ -356,6 +357,49 @@ function genParticles(Ly,color,isGlow){
   var mouse=Ly.mouse&&Ly.mouse!=='none';
   return '<g '+(mouse?'data-cfg=\''+JSON.stringify({pc:true,repel:Ly.mouse==='repel'})+'\'':'')+'><animate attributeName="opacity" values="1;.55;1" dur="5s" repeatCount="indefinite"/>'+t+'</g>';
 }
+/* живой плексус: hex -> 'r,g,b' */
+function rgbStr(hex){
+  var h=String(hex||'#cccccc').replace('#','');
+  if(h.length===3)h=h.split('').map(function(c){return c+c}).join('');
+  if(h.length<6)return '204,204,204';
+  return parseInt(h.slice(0,2),16)+','+parseInt(h.slice(2,4),16)+','+parseInt(h.slice(4,6),16);
+}
+/* один кадр живого плексуса на canvas (редактор и экспорт) */
+function plexusFrame(ctx,P,o,mouse,cw,ch,dpr){
+  ctx.setTransform(dpr||1,0,0,dpr||1,0,0);
+  ctx.clearRect(0,0,cw,ch);
+  var rgb=o.rgb||'204,204,204',i,j,d2;
+  P.forEach(function(p){
+    var dx=p.x-mouse.x,dy=p.y-mouse.y,d=Math.hypot(dx,dy);
+    if(d<o.cursorR&&d>.01){
+      var f=(1-d/o.cursorR)*o.strength/100*.6;
+      if(o.cursor.indexOf('repel')>-1){p.vx+=dx/d*f;p.vy+=dy/d*f;}
+      if(o.cursor.indexOf('attract')>-1){p.vx-=dx/d*f;p.vy-=dy/d*f;}
+    }
+    var s=Math.hypot(p.vx,p.vy);
+    if(s>o.max){p.vx*=o.max/s;p.vy*=o.max/s;}
+    p.x+=p.vx*o.speed;p.y+=p.vy*o.speed;
+    if(p.x<0||p.x>cw)p.vx*=-1;
+    if(p.y<0||p.y>ch)p.vy*=-1;
+  });
+  ctx.lineWidth=1;
+  for(i=0;i<P.length;i++)for(j=i+1;j<P.length;j++){
+    d2=Math.hypot(P[i].x-P[j].x,P[i].y-P[j].y);
+    if(d2<o.distance){
+      ctx.strokeStyle='rgba('+rgb+','+((1-d2/o.distance)*(o.lineOp||.2)).toFixed(3)+')';
+      ctx.beginPath();ctx.moveTo(P[i].x,P[i].y);ctx.lineTo(P[j].x,P[j].y);ctx.stroke();
+    }
+  }
+  if(o.cursor.indexOf('grab')>-1)P.forEach(function(p){
+    var d3=Math.hypot(p.x-mouse.x,p.y-mouse.y);
+    if(d3<o.cursorR){
+      ctx.strokeStyle='rgba('+rgb+','+((1-d3/o.cursorR)*.4).toFixed(3)+')';
+      ctx.beginPath();ctx.moveTo(mouse.x,mouse.y);ctx.lineTo(p.x,p.y);ctx.stroke();
+    }
+  });
+  ctx.fillStyle=o.color||'#cccccc';
+  P.forEach(function(p){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();});
+}
 function genTerminal(Ly,color,uid,i,suf){
   var ch=(Ly.chars&&Ly.chars.length)?Ly.chars:'0123456789ABCDEF';
   var fs=Math.max(8,cl(Ly.fs||24,8,120));
@@ -378,7 +422,7 @@ function genTerminal(Ly,color,uid,i,suf){
   return{t:t,css:css3};
 }
 /* паттерны: сетка / волны / точки / полосы / сканлайны / виньетка / спец-эффекты */
-function layerContent(Ly,i,uid,color,drift,suf){
+function layerContent(Ly,i,uid,color,drift,suf,skipLive){
   var pid=uid+'p'+i+(suf||''),d='',b='',css2='';
   function an(a){return drift?'<animate attributeName="'+a+'" values="'+drift.vs.join(';')+'" dur="'+drift.d+'s" repeatCount="indefinite"/>':''}
   if(Ly.type==='grid'){
@@ -403,7 +447,7 @@ function layerContent(Ly,i,uid,color,drift,suf){
     d='<radialGradient id="'+pid+'" cx=".5" cy=".5" r=".75"><stop offset=".55" stop-color="'+color+'" stop-opacity="0"/><stop offset="1" stop-color="'+color+'" stop-opacity=".85">'+an('stop-color')+'</stop></radialGradient>';
     b='<rect x="-400" y="-400" width="'+(W+800)+'" height="'+(H+800)+'" fill="url(#'+pid+')"/>';
   }else if(Ly.type==='particles'){
-    b=genParticles(Ly,color,!!suf);
+    b=skipLive&&Ly.live?'':genParticles(Ly,color,!!suf);
   }else if(Ly.type==='crt'){
     var hgt=cl(Ly.scanlineHeight||2,1,4),alp=cl(Ly.scanlineAlpha==null?.3:Ly.scanlineAlpha,.05,.5);
     d='<pattern id="'+pid+'" width="8" height="'+(hgt*2)+'" patternUnits="userSpaceOnUse"><rect width="8" height="'+hgt+'" fill="'+color+'" opacity="'+alp+'"/>'+an('fill')+'</pattern>';
@@ -447,7 +491,7 @@ function pulseKF(uid,name,pts,dur,int){
 }
 
 /* ---------- 5. Сборка SVG ---------- */
-function buildSVG(st,uid){
+function buildSVG(st,uid,skipLive){
   var defs='',css='',parts=[],sn=0;
   css+='@keyframes spcw{to{transform:rotate(360deg)}}@keyframes spccw{to{transform:rotate(-360deg)}}@keyframes swcw{0%{transform:rotate(0)}50%{transform:rotate(180deg)}100%{transform:rotate(0)}}@keyframes swccw{0%{transform:rotate(0)}50%{transform:rotate(-180deg)}100%{transform:rotate(0)}}';
   var bgR='<rect width="'+W+'" height="'+H+'" fill="'+st.bgBase+'"/>';
@@ -539,8 +583,8 @@ function buildSVG(st,uid){
       inner=(Ly.neon?'<g '+(gA?'style="animation:'+gA+'"':'')+' filter="url(#'+gid+')">'+gw+'</g>':'')
         +'<g '+(mA?'style="animation:'+mA+'"':'')+' '+(Ly.blur>0?'filter="url(#'+fid+')"':'')+'>'+mw+'</g>';
     }else{
-      var main=layerContent(Ly,i,uid,Ly.color,drift);
-      var glow=Ly.neon?layerContent(Ly,i,uid,Ly.neonColor,driftN,'g'):null;
+      var main=layerContent(Ly,i,uid,Ly.color,drift,null,skipLive);
+      var glow=Ly.neon?layerContent(Ly,i,uid,Ly.neonColor,driftN,'g',skipLive):null;
       css+=(main.css||'')+(glow?(glow.css||''):'');
       var ans=[];
       if(Ly.moveDir!=='none'){
@@ -573,7 +617,7 @@ function buildSVG(st,uid){
 
   return '<defs>'+defs+'</defs>'+bgR+'<g>'+parts.map(function(p){return p.s}).join('')+'</g>'+(css?'<style>'+css+'</style>':'');
 }
-function show(el,st,uid){el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid slice">'+buildSVG(st,uid)+'</svg>'}
+function show(el,st,uid,skipLive){el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid slice">'+buildSVG(st,uid,skipLive)+'</svg>'}
 
 /* ---------- 6. Курсор-FX: привязка к мыши ---------- */
 function bindCursorFX(root){

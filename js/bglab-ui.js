@@ -41,10 +41,67 @@ function reqRender(){
     var n=performance.now();
     if(n-lastShow<33){ raf=requestAnimationFrame(f); return; }
     lastShow=n;
-    show(stage,state,'p'); renderPropsPrev(); bindCursorFX(stage);
+    show(stage,state,'p',true); renderPropsPrev(); bindCursorFX(stage); bindParticlesLive(stage);
   });
 }
 function refresh(){ renderList(); renderLook(); renderAnim(); reqRender(); }
+
+/* живой плексус: canvas-оверлей поверх сцены (первый живой particles-слой) */
+function bindParticlesLive(root){
+  if(!state)return;
+  var Ly=null;
+  for(var i=0;i<state.layers.length;i++){
+    var l=state.layers[i];
+    if(l&&l.type==='particles'&&l.visible!==false&&l.live){Ly=l;break;}
+  }
+  var cv=root._plexCanvas;
+  if(!Ly){
+    if(cv){if(cv.parentNode)cv.parentNode.removeChild(cv);root._plexCanvas=null;root._plexCtx=null;}
+    return;
+  }
+  if(!cv||cv.parentNode!==root){
+    if(cv&&cv.parentNode)cv.parentNode.removeChild(cv);
+    cv=document.createElement('canvas');
+    cv.className='plex-canvas';
+    root.appendChild(cv);
+    root._plexCanvas=cv;
+    root._plexCtx=cv.getContext('2d');
+    if(!root._plex)root._plex={mouse:{x:-1e5,y:-1e5}};
+  }
+  var n=cl(Ly.count||140,2,200);
+  if(!root._plexP||root._plexP.length!==n){
+    root._plexP=[];
+    var rnd=mulberry32((Ly.seed||7)+555),r0=root.getBoundingClientRect();
+    var bw=Math.max(400,r0.width)||400,bh=Math.max(300,r0.height)||300;
+    for(var k=0;k<n;k++)root._plexP.push({x:rnd()*bw,y:rnd()*bh,vx:(rnd()-.5)*2,vy:(rnd()-.5)*2,r:(Ly.fs||3)*(.5+rnd()*.35)});
+  }
+  root._plex.P=root._plexP;
+  root._plex.o={cursorR:Ly.cursorR||150,strength:Ly.strength||50,lineOp:Ly.lineOp!=null?Ly.lineOp:.2,distance:Ly.distance||140,speed:Ly.speed!=null?Ly.speed:.4,max:4,cursor:Ly.cursor||'none',color:Ly.color||'#cccccc',rgb:rgbStr(Ly.color||'#cccccc')};
+  if(!root._plexRaf){
+    var vis=true;
+    document.addEventListener('visibilitychange',function(){vis=!document.hidden;});
+    function frame(){
+      var cv2=root._plexCanvas,cx=root._plexCtx,s=root._plex;
+      if(vis&&cv2&&cx&&s&&s.P){
+        var r=root.getBoundingClientRect(),d=window.devicePixelRatio||1;
+        if(cv2.width!==Math.round(r.width*d)||cv2.height!==Math.round(r.height*d)){cv2.width=Math.round(r.width*d);cv2.height=Math.round(r.height*d);}
+        plexusFrame(cx,s.P,s.o,s.mouse,r.width,r.height,d);
+      }
+      root._plexRaf=requestAnimationFrame(frame);
+    }
+    root._plexRaf=requestAnimationFrame(frame);
+  }
+  if(!root._plexPtr){
+    root._plexPtr=function(e){
+      var s=root._plex;if(!s)return;
+      var r=root.getBoundingClientRect();
+      s.mouse.x=e.clientX-r.left;s.mouse.y=e.clientY-r.top;
+    };
+    root._plexLeave=function(){var s=root._plex;if(s){s.mouse.x=-1e5;s.mouse.y=-1e5;}};
+    root.addEventListener('pointermove',root._plexPtr);
+    root.addEventListener('pointerleave',root._plexLeave);
+  }
+}
 
 /* карточки пресетов на главной — бесконечная лента */
 var trackEl=document.createElement('div'); trackEl.id='bgcardsTrack'; cardsEl.appendChild(trackEl);
@@ -275,10 +332,15 @@ function renderLook(){
 
   /* сеть частиц */
   if(Ly.type==='particles'){
-    h+='<div class="crow">Реакция на курсор <select data-lks="mouse"><option value="none">Нет</option><option value="repel">Отталкивание</option><option value="attract">Притяжение</option></select></div>'
+    h+='<div class="crow">Режим <select data-lks="live"><option value="0">Статика (SVG)</option><option value="1">Живой (canvas)</option></select></div>'
+      +'<div class="crow">Курсор <select data-lks="cursor"><option value="none">Нет</option><option value="grab">Grab-линии</option><option value="repel">Отталкивание</option><option value="attract">Притяжение</option><option value="grab+repel">Grab+отталкивание</option><option value="grab+attract">Grab+притяжение</option></select></div>'
       +rw('lk','count','Частиц',20,200,1,Ly.count)
       +rw('lk','distance','Радиус связи',50,300,1,Ly.distance)
       +rw('lk','fs','Размер точки',1,12,.5,Ly.fs)
+      +rw('lk','speed','Скорость',0,2,.1,Ly.speed)
+      +rw('lk','cursorR','Радиус курсора',50,400,1,Ly.cursorR)
+      +rw('lk','strength','Сила',0,100,1,Ly.strength)
+      +rw('lk','lineOp','Яркость линий',.05,.6,.05,Ly.lineOp)
       +'<button class="btn sm" id="reroll">'+I.dice+' Перемешать</button>';
   }
 
@@ -335,6 +397,8 @@ function renderLook(){
   var fx=lookEl.querySelector('[data-lks="fx"]');   if(fx)fx.value=Ly.fx;
   var ob=lookEl.querySelector('[data-lks="obj"]');  if(ob)ob.value=Ly.obj;
   var ms=lookEl.querySelector('[data-lks="mouse"]');if(ms)ms.value=Ly.mouse||'none';
+  var lv=lookEl.querySelector('[data-lks="live"]'); if(lv)lv.value=Ly.live?'1':'0';
+  var cu=lookEl.querySelector('[data-lks="cursor"]');if(cu)cu.value=Ly.cursor||'none';
 
   var fi=lookEl.querySelector('#imgFile');
   if(fi)fi.onchange=function(){
@@ -403,6 +467,7 @@ function renderLook(){
   });
 
   bind(lookEl,'lk',Ly,function(k,v){
+    if(k==='live')Ly.live=v==='1';
     if(k==='neon')renderAnim();
     if(k==='random'||k==='multi'||k==='outline'||k==='obj'||k==='tileOn'||k==='shape')renderLook();
     if(Ly.sync){
@@ -550,11 +615,13 @@ function drawCurves(){
 }
 
 /* ---------- 14. Экспорт и сохранение ---------- */
-function svgStandalone(){
-  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid slice">'+buildSVG(state,'e')+'</svg>';
+function svgStandalone(skipLive){
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid slice">'+buildSVG(state,'e',skipLive)+'</svg>';
 }
 function htmlStandalone(){
-  return '<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Мой фон</title><style>*{margin:0;box-sizing:border-box}html,body{height:100%}.bg{position:fixed;inset:0;z-index:-1;overflow:hidden}.bg svg{width:100%;height:100%;display:block}</style></head><body><div class="bg">'+svgStandalone()+'</div>'+(typeof BackgroundsLib!=='undefined'?BackgroundsLib.cursorScript():'')+'</body></html>';
+  var cfg=typeof BackgroundsLib!=='undefined'?BackgroundsLib.particlesCfg(state):null;
+  var px=cfg?' data-plex=\''+esc(JSON.stringify(cfg))+'\'':'';
+  return '<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Мой фон</title><style>*{margin:0;box-sizing:border-box}html,body{height:100%}.bg{position:fixed;inset:0;z-index:-1;overflow:hidden}.bg svg{width:100%;height:100%;display:block}</style></head><body><div class="bg"'+px+'>'+svgStandalone(!!cfg)+'</div>'+(typeof BackgroundsLib!=='undefined'?BackgroundsLib.cursorScript():'')+(cfg&&typeof BackgroundsLib!=='undefined'?BackgroundsLib.particlesScript():'')+'</body></html>';
 }
 function toast(t){
   var el=$('toast'); el.textContent=t; el.classList.add('show');
@@ -570,7 +637,9 @@ function copy(t,m){
   }
 }
 $('bgcopyCSS').onclick=function(){
-  copy('.bg{position:fixed;inset:0;background:'+(state?state.bgBase:'#0a0a0a')+' url("data:image/svg+xml,'+encodeURIComponent(svgStandalone())+'") center/cover no-repeat}','CSS скопирован ✓');
+  var m='CSS скопирован ✓';
+  if(typeof BackgroundsLib!=='undefined'&&BackgroundsLib.particlesCfg(state))m='Живой режим в CSS не экспортируется — вставлена статика ✓';
+  copy('.bg{position:fixed;inset:0;background:'+(state?state.bgBase:'#0a0a0a')+' url("data:image/svg+xml,'+encodeURIComponent(svgStandalone())+'") center/cover no-repeat}',m);
 };
 $('bgcopyHTML').onclick=function(){ copy(htmlStandalone(),'HTML скопирован ✓'); };
 
