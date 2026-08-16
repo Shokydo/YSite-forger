@@ -2670,6 +2670,69 @@ textarea {
   padding: 14px;
 }
 
+#bgGroupOverlay .gchips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+#bgGroupOverlay .gchip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #1e1e1e;
+  color: #ccc;
+  font-size: 12px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+#bgGroupOverlay .gchip:hover {
+  background: #262626;
+  color: #fff;
+}
+
+#bgGroupOverlay .gchip.active {
+  border-color: #4a9eff;
+  color: #fff;
+  background: rgba(74, 158, 255, 0.12);
+}
+
+#bgGroupOverlay .gchip-ic {
+  font-family: 'Segoe UI', 'Arial', sans-serif;
+  font-weight: 700;
+  min-width: 14px;
+  text-align: center;
+}
+
+#bgGroupOverlay .gadd-row .btn {
+  padding: 6px 14px;
+}
+
+#bgGroupOverlay .gpart-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+  color: #e6e6e6;
+  margin-bottom: 12px;
+}
+
+#bgGroupOverlay .gpart-panel-head .btn {
+  padding: 3px 7px;
+  font-size: 12px;
+}
+
+#bgGroupOverlay .gpart-empty {
+  color: #999;
+  font-size: 13px;
+  padding: 10px 0;
+}
+
 #bgGroupOverlay .gwin-btns {
   justify-content: flex-end;
 }

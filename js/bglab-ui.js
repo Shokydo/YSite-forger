@@ -600,48 +600,129 @@ function grpHost(){
 }
 function openGroupEditor(ei){
   if(!state||!state.layers[sel])return;
-  grpCtx=ei!=null?{kind:'el',ei:ei}:{kind:'layer'};
+  grpCtx=ei!=null?{kind:'el',ei:ei,selPart:0}:{kind:'layer',selPart:0};
   var host=grpHost();
   if(!host)return;
-  var tt=null;
-  (host.g||[]).forEach(function(p){ if(!tt&&p.ty==='t')tt=p; });
-  if(tt)host.g=[{ty:'t',x:50,y:50,ch:tt.ch||'A',fs:tt.fs||40,rot:tt.rot||0}];
-  else host.g=defGroup();
+  var g=host.g&&host.g.length?host.g:defGroup();
+  host.g=g.map(function(p){
+    if(p.ty==='t')return p;
+    return {ty:'t',x:p.x!=null?p.x:50,y:p.y!=null?p.y:50,ch:'A',fs:p.fs||Math.max(p.rx||20,p.ry||20),rot:p.rot||0};
+  });
+  if(grpCtx.selPart==null||!host.g[grpCtx.selPart])grpCtx.selPart=0;
   var T=$('bgGroupTitle');
   if(T)T.textContent=grpCtx.kind==='el'
     ?'Редактор сборки — '+NAMES.symbols+' '+(sel+1)+' · Элемент #'+(grpCtx.ei+1)
     :'Редактор сборки — слой '+(sel+1)+' ('+(NAMES.symbols||'Символы')+')';
-  renderGroupEditor();
+  renderPartsBar(); renderPartPanel(); renderGroupPreview();
   $('bgGroupOverlay').classList.remove('hidden');
 }
-/* превью: строка символов по центру с поворотом */
+/* превью 0..100: каждая часть в <g data-gi>, выбранная подсвечена */
+function gpartBox(p){
+  var fs=p.fs!=null?p.fs:20;
+  return {rx:1+(fs/2)*(p.sx!=null?p.sx:1),ry:1+(fs*0.65/2)*(p.sy!=null?p.sy:1)};
+}
 function renderGroupPreview(){
   var host=grpHost(), box=$('bgGroupPreview');
   if(!host||!box)return;
-  var p=(host.g&&host.g[0])||{ty:'t',x:50,y:50,ch:'A',fs:40,rot:0};
+  var g=host.g||[];
+  if(!g.length){ box.innerHTML='<div class="hint" style="padding:14px;text-align:center;color:#999">Пусто. Добавьте символ.</div>'; return; }
   try{
-    var t='<svg viewBox="0 0 100 100"><g transform="translate(50 50)">'+groupContent([p],100,'#fff',false)+'</svg>';
+    var t='<svg viewBox="0 0 100 100"><g transform="translate(50 50)">'+groupContent(g,100,'#fff',false,function(p,i){
+      var b=gpartBox(p);
+      var tr='transform="translate('+((p.x!=null?p.x:50)-50).toFixed(2)+' '+((p.y!=null?p.y:50)-50).toFixed(2)+') rotate('+(p.rot||0)+') scale('+(p.sx!=null?p.sx:1)+' '+(p.sy!=null?p.sy:1)+')"';
+      var hit='<rect x="'+(-b.rx)+'" y="'+(-b.ry)+'" width="'+(b.rx*2)+'" height="'+(b.ry*2)+'" fill="rgba(74,158,255,0.05)" stroke="rgba(74,158,255,0.3)" '+tr+'/>';
+      var post='</g>';
+      if(i===grpCtx.selPart)post='<rect x="'+(-b.rx)+'" y="'+(-b.ry)+'" width="'+(b.rx*2)+'" height="'+(b.ry*2)+'" fill="none" stroke="#4a9eff" stroke-width="0.7" stroke-dasharray="2 1.6" '+tr+'/>'+post;
+      return ['<g data-gi="'+i+'" style="cursor:pointer">'+hit,post];
+    })+'</svg>';
     var svg=box.querySelector('svg');
     if(svg){ svg.innerHTML=t.replace(/^<svg[^>]*>/,'').replace(/<\/svg>\s*$/,''); }
-    else{ box.innerHTML=t; }
+    else{ box.innerHTML=t; bindGroupPreview(box); }
   }catch(e){ box.innerHTML='<div class="hint" style="padding:14px;text-align:center;color:#999">Ошибка превью</div>'; }
+}
+/* клик = выбор части, drag = движение в координатах 0..100 */
+function bindGroupPreview(box){
+  var svg=box.querySelector('svg');
+  if(!svg||svg._gb)return;
+  svg._gb=1;
+  function toXY(e){
+    var r=svg.getBoundingClientRect();
+    return {x:(e.clientX-r.left)/r.width*100,y:(e.clientY-r.top)/r.height*100};
+  }
+  svg.addEventListener('pointerdown',function(e){
+    var host=grpHost(); if(!host)return;
+    var g=host.g||[];
+    var gi=null, el=e.target;
+    while(el&&el!==svg){ if(el.getAttribute&&el.getAttribute('data-gi')!=null){ gi=+el.getAttribute('data-gi'); break; } el=el.parentNode; }
+    if(gi!=null&&g[gi]){
+      grpCtx.selPart=gi;
+      renderPartsBar(); renderPartPanel(); renderGroupPreview();
+    }
+    if(grpCtx.selPart==null||!g[grpCtx.selPart])return;
+    if(gi==null)return;
+    e.preventDefault();
+    var p=g[grpCtx.selPart];
+    var st=toXY(e);
+    var dx0=st.x-(p.x!=null?p.x:50), dy0=st.y-(p.y!=null?p.y:50);
+    try{ svg.setPointerCapture(e.pointerId); }catch(err){}
+    function mv(e2){
+      var q=toXY(e2);
+      p.x=Math.max(0,Math.min(100,q.x-dx0));
+      p.y=Math.max(0,Math.min(100,q.y-dy0));
+      renderGroupPreview(); renderPartPanel(); reqRender();
+    }
+    function up(){
+      svg.removeEventListener('pointermove',mv);
+      svg.removeEventListener('pointerup',up);
+      svg.removeEventListener('pointercancel',up);
+    }
+    svg.addEventListener('pointermove',mv);
+    svg.addEventListener('pointerup',up);
+    svg.addEventListener('pointercancel',up);
+  });
 }
 function growRow(f,lb,val,min,max,st){
   val=val!=null?val:min;
   st=st||1;
   return '<div class="grow-row"><span class="lbl">'+lb+'</span><input type="range" data-gf="'+f+'" min="'+min+'" max="'+max+'" step="'+st+'" value="'+val+'"><input class="num" type="number" data-gf="'+f+'" min="'+min+'" max="'+max+'" step="'+st+'" value="'+val+'"></div>';
 }
-function renderGroupEditor(){
-  var host=grpHost();
-  if(!host)return;
-  var p=host.g&&host.g[0];
-  if(!p)return;
-  var box=$('bgGroupPanel');
-  if(!box)return;
-  box.innerHTML='<div class="crow"><b>Строка символов</b></div>'
-    +'<div class="gpart-panel">'
+function renderPartsBar(){
+  var host=grpHost(), box=$('bgGroupPartsBar');
+  if(!host||!box)return;
+  var g=host.g||[];
+  box.innerHTML='';
+  if(!g.length){ box.innerHTML='<div class="gpart-empty">Частей нет — добавьте ниже.</div>'; return; }
+  g.forEach(function(p,i){
+    var c=document.createElement('button');
+    c.className='gchip'+(i===grpCtx.selPart?' active':'');
+    c.title='Часть '+(i+1);
+    c.innerHTML=(i+1)+'<span class="gchip-ic">'+esc(String(p.ch||'A').charAt(0)||'A')+'</span>';
+    c.onclick=function(){
+      grpCtx.selPart=i;
+      renderPartsBar(); renderGroupPreview(); renderPartPanel();
+    };
+    box.appendChild(c);
+  });
+}
+function renderPartPanel(){
+  var host=grpHost(), box=$('bgGroupPanel');
+  if(!host||!box)return;
+  var g=host.g||[];
+  var i=grpCtx.selPart;
+  if(i==null||!g[i]){ box.innerHTML='<div class="gpart-empty">Нет выбранной части.</div>'; return; }
+  var p=g[i];
+  box.innerHTML='<div class="gpart-panel">'
+    +'<div class="gpart-panel-head"><b>Часть '+(i+1)+' · Символ</b>'
+    +'<span class="rr">'
+    +'<button class="btn sm" data-gact="dup" title="Дублировать">'+I.dup+'</button>'
+    +'<button class="btn sm" data-gact="del" title="Удалить">'+I.rm+'</button>'
+    +'</span></div>'
     +'<label class="grow-row"><span class="lbl">Символы</span><input class="txt" data-gf="ch" maxlength="32" value="'+esc(p.ch||'A')+'" style="grid-column:2/4;justify-self:stretch"></label>'
     +growRow('fs','Размер',p.fs,6,100)
+    +growRow('sx','Растяж. X',p.sx!=null?p.sx:1,0.2,3,0.05)
+    +growRow('sy','Растяж. Y',p.sy!=null?p.sy:1,0.2,3,0.05)
+    +growRow('x','X',p.x,0,100)
+    +growRow('y','Y',p.y,0,100)
     +growRow('rot','Поворот',p.rot,-180,180)
     +'</div>';
   box.querySelectorAll('[data-gf]').forEach(function(inp){
@@ -651,13 +732,34 @@ function renderGroupEditor(){
       renderGroupPreview(); reqRender();
     });
   });
-  renderGroupPreview();
+  box.querySelector('[data-gact="dup"]').onclick=function(){
+    var c=JSON.parse(JSON.stringify(p));
+    c.x=Math.min(100,(c.x||0)+4); c.y=Math.min(100,(c.y||0)+4);
+    g.splice(i+1,0,c);
+    grpCtx.selPart=i+1;
+    renderPartsBar(); renderPartPanel(); renderGroupPreview(); reqRender();
+  };
+  box.querySelector('[data-gact="del"]').onclick=function(){
+    g.splice(i,1);
+    grpCtx.selPart=g.length?Math.max(0,Math.min(i,g.length-1)):null;
+    renderPartsBar(); renderPartPanel(); renderGroupPreview(); reqRender();
+  };
 }
 function closeGroupEditor(){ $('bgGroupOverlay').classList.add('hidden'); }
 (function(){
   var ov=$('bgGroupOverlay');
   $('bgGroupClose').onclick=closeGroupEditor;
   $('bgGroupDone').onclick=closeGroupEditor;
+  $('bgGroupAdd').onclick=function(){
+    var host=grpHost(); if(!host)return;
+    host.g=host.g||[];
+    var c=defGroup()[0];
+    c.x=Math.min(90,15+(host.g.length%5)*8);
+    c.y=Math.min(90,15+Math.floor(host.g.length/5)*8);
+    host.g.push(c);
+    grpCtx.selPart=host.g.length-1;
+    renderPartsBar(); renderPartPanel(); renderGroupPreview(); reqRender();
+  };
   $('bgGroupDel').onclick=async function(){
     var Ly=state&&state.layers[sel];
     if(grpCtx.kind==='el'){
@@ -679,9 +781,29 @@ function closeGroupEditor(){ $('bgGroupOverlay').classList.add('hidden'); }
   };
   ov.addEventListener('mousedown',function(e){ if(e.target.id==='bgGroupOverlay')closeGroupEditor(); });
   document.addEventListener('keydown',function(e){
-    if(e.key!=='Escape')return;
+    if(e.key==='Escape'){
+      var ov2=$('bgGroupOverlay');
+      if(ov2&&!ov2.classList.contains('hidden'))closeGroupEditor();
+      return;
+    }
     var ov2=$('bgGroupOverlay');
-    if(ov2&&!ov2.classList.contains('hidden'))closeGroupEditor();
+    if(!ov2||ov2.classList.contains('hidden'))return;
+    var tg=e.target;
+    if(tg&&(tg.tagName==='INPUT'||tg.tagName==='TEXTAREA'||tg.tagName==='SELECT'))return;
+    if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].indexOf(e.key)===-1)return;
+    var host=grpHost();
+    if(!host)return;
+    var g=host.g||[];
+    var i=grpCtx.selPart;
+    if(i==null||!g[i])return;
+    e.preventDefault();
+    var d=e.shiftKey?5:1;
+    var p=g[i];
+    if(e.key==='ArrowLeft')p.x=Math.max(0,Math.min(100,(p.x||0)-d));
+    else if(e.key==='ArrowRight')p.x=Math.max(0,Math.min(100,(p.x||0)+d));
+    else if(e.key==='ArrowUp')p.y=Math.max(0,Math.min(100,(p.y||0)-d));
+    else if(e.key==='ArrowDown')p.y=Math.max(0,Math.min(100,(p.y||0)+d));
+    renderGroupPreview(); renderPartPanel(); reqRender();
   });
 })();
 

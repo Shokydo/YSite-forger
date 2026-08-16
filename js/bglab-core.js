@@ -55,7 +55,8 @@ var I={
   particles:'<svg class="ic" viewBox="0 0 16 16"><circle cx="4" cy="4" r="1.7" fill="currentColor"/><circle cx="12" cy="5" r="1.7" fill="currentColor"/><circle cx="9" cy="12" r="1.7" fill="currentColor"/><path d="M4 4L12 5M12 5L9 12M4 4L9 12" stroke="currentColor"/></svg>',
   crt:'<svg class="ic" viewBox="0 0 16 16"><rect x="1" y="2" width="14" height="12" rx="2" fill="none" stroke="currentColor"/><path d="M1 5h14M1 8h14M1 11h14" stroke="currentColor"/></svg>',
   spotlight:'<svg class="ic" viewBox="0 0 16 16"><circle cx="8" cy="8" r="3.2" fill="currentColor"/><path d="M8 1v2.5M8 12.5V15M1 8h2.5M12.5 8H15M3 3l1.8 1.8M11.2 11.2l1.8 1.8M13 3l-1.8 1.8M4.8 11.2L3 13" stroke="currentColor"/></svg>',
-  terminal:'<svg class="ic" viewBox="0 0 16 16"><path d="M2 3l4 5-4 5M8 13h6" stroke="currentColor" fill="none" stroke-width="1.6"/></svg>'
+  terminal:'<svg class="ic" viewBox="0 0 16 16"><path d="M2 3l4 5-4 5M8 13h6" stroke="currentColor" fill="none" stroke-width="1.6"/></svg>',
+  dup:'<svg class="ic" viewBox="0 0 16 16"><rect x="5" y="5" width="9" height="9" rx="1.5" fill="none" stroke="currentColor"/><path d="M11 2H3.5A1.5 1.5 0 0 0 2 3.5V11" fill="none" stroke="currentColor"/></svg>'
 };
 
 /* ---------- 2. Тёмный пикер цвета ---------- */
@@ -221,7 +222,7 @@ function groupContent(g,s,color,outline,perPart){
   (g||[]).forEach(function(p,i){
     var wrap=perPart?perPart(p,i):null;
     if(wrap)o+=wrap[0];
-    var rr=' transform="translate('+(p.x!=null?p.x:50)+' '+(p.y!=null?p.y:50)+') rotate('+(p.rot||0)+')"';
+    var rr=' transform="translate('+(p.x!=null?p.x:50)+' '+(p.y!=null?p.y:50)+') rotate('+(p.rot||0)+')'+(p.ty==='t'?' scale('+(p.sx!=null?p.sx:1)+' '+(p.sy!=null?p.sy:1)+')':'')+'"';
     var rx=p.rx!=null?p.rx:20,ry=p.ry!=null?p.ry:20;
     if(p.ty==='e')o+='<ellipse'+rr+' rx="'+rx+'" ry="'+ry+'" '+F(p)+'/>';
     else if(p.ty==='r')o+='<rect'+rr+' x="'+(-rx)+'" y="'+(-ry)+'" width="'+(rx*2)+'" height="'+(ry*2)+'" '+F(p)+'/>';
